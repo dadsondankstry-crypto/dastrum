@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
-<title>Biriba</title>
+<title>Biriba V4.0</title>
 <link rel="manifest" href="manifest.json">
 <meta name="theme-color" content="#0a3d1f">
 <link rel="icon" type="image/svg+xml" href="icons/icon.svg">
@@ -17,9 +17,10 @@
     color:#f2f2f2;display:flex;flex-direction:column;
     height:100vh;height:100dvh;overflow:hidden;font-size:14px;
     user-select:none;
+    
     --hand-w: 52px;
     --hand-cols: 8;
-    --lixo-h: 46px;
+    --lixo-w: 32px;
     --lixo-cols: 0;
     --mesa-w: 24px;
   }
@@ -80,9 +81,18 @@
     background: rgba(0,0,0,.25);
     border-bottom: 1px solid rgba(255,255,255,.05);
   }
-  .info-cpu { display: flex; align-items: center; gap: 6px; cursor: pointer; }
+  
+  .info-cpu {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 2px;
+    cursor: pointer;
+  }
   .info-cpu:active { opacity: 0.7; }
-  .info-cpu b { color: #fff; font-size: 11px; }
+  .info-cpu .rotulo {
+    font-size: 9px; color: #a5d6a7; font-weight: 700; text-transform: uppercase;
+  }
   .info-cpu .card-back {
     width: 32px; height: 46px;
     background: linear-gradient(135deg,#1e3a8a,#3b82f6);
@@ -97,6 +107,7 @@
     border-radius: 8px; font-size: 10px; font-weight: 800;
     padding: 1px 5px; border: 1px solid #ffd54f; z-index: 5;
   }
+
   .info-pilhas { display: flex; gap: 8px; }
   .pilha-item { display: flex; flex-direction: column; align-items: center; gap: 2px; cursor: pointer; }
   .pilha-item:active { opacity: 0.7; }
@@ -163,7 +174,7 @@
   #area-lixo .rotulo { font-size: 9px; color: #a5d6a7; font-weight: 700; text-transform: uppercase; text-align: left; }
   #area-lixo .rotulo span { color: #ffd54f; font-size: 11px; margin-left: 4px; }
   #lixo-cartas {
-    display: flex; gap: 3px; overflow-x: auto; overflow-y: hidden; height: var(--lixo-h);
+    display: flex; gap: 3px; overflow-x: auto; overflow-y: hidden; min-height: calc(var(--lixo-w) * 48 / 34);
     padding: 2px 2px 2px 12px; background: rgba(0,0,0,.18);
     border-radius: 6px; scrollbar-width: thin; cursor: pointer; align-items: center; transition: all 0.2s;
   }
@@ -172,10 +183,10 @@
     gap: 4px; height: auto; max-height: 150px; overflow-y: auto; overflow-x: hidden; padding: 4px; align-items: start;
   }
   #lixo-cartas .card {
-    height: var(--lixo-h); width: auto; aspect-ratio: 34/48; flex: 0 0 auto;
+    width: var(--lixo-w); height: auto; aspect-ratio: 34/48; flex: 0 0 auto;
     margin-left: -12px; position: relative; box-shadow: -1px 0 4px rgba(0,0,0,0.6); border: 1px solid #aaa;
   }
-  #lixo-cartas.grid .card { margin-left: 0; width: 100%; height: auto; max-height: var(--lixo-h); box-shadow: 0 2px 4px rgba(0,0,0,0.4); }
+  #lixo-cartas.grid .card { margin-left: 0; width: 100%; max-width: var(--lixo-w); height: auto; box-shadow: 0 2px 4px rgba(0,0,0,0.4); }
   #lixo-cartas .card:first-child { margin-left: 0; }
   #lixo-vazio { color: rgba(255,255,255,.35); font-size: 10px; padding: 12px 8px; align-self: center; }
   #lixo-cartas.grid #lixo-vazio { grid-column: 1 / -1; width: 100%; text-align: center; }
@@ -250,7 +261,7 @@
 <body>
 
 <div id="topo">
-  <span class="titulo" id="titulo-secreto">BIRIBA <span class="versao">PWA</span></span>
+  <span class="titulo" id="titulo-secreto">BIRIBA <span class="versao">V4.0</span></span>
   <span class="badge" id="badge-serie" style="margin-left:10px;">—</span>
   <span class="badge-espectador" id="badge-espectador">👁️ ESPECTADOR</span>
   <span class="esp"></span>
@@ -263,7 +274,7 @@
 
 <div id="barra-info">
   <div class="info-cpu" onclick="abrirInspecao('cpu')">
-    <b id="nome-cpu">CPU</b>
+    <div class="rotulo">CPU</div>
     <div class="card-back"><div class="contagem" id="cartas-cpu">11</div></div>
   </div>
   <div class="info-pilhas">
@@ -376,7 +387,7 @@
     </div>
 
     <div id="cfg-sec-interface" class="cfg-secao" style="display:none">
-      <h3>Tamanho das Cartas</h3>
+      <h3>Tamanho das Cartas (Largura)</h3>
       <div class="cfg-linha">
         <span>Largura da Carta (Mão) - px</span>
         <input type="number" id="cfg-hand-w" min="30" max="100" step="2">
@@ -386,8 +397,8 @@
         <input type="number" id="cfg-mesa-w" min="15" max="60" step="2">
       </div>
       <div class="cfg-linha">
-        <span>Altura da Carta (Lixo) - px</span>
-        <input type="number" id="cfg-lixo-h" min="30" max="80" step="2">
+        <span>Largura da Carta (Lixo) - px</span>
+        <input type="number" id="cfg-lixo-w" min="20" max="80" step="2">
       </div>
       
       <h3>Organização</h3>
@@ -431,13 +442,13 @@
       <div class="cfg-linha">
         <span id="lbl-cfg-serie">Série</span>
         <select id="cfg-serie">
-          <option value="1" id="opt-s1">Partida única</option>
-          <option value="3" id="opt-s3">Melhor de 3</option>
-          <option value="5" id="opt-s5">Melhor de 5</option>
-          <option value="7" id="opt-s7">Melhor de 7</option>
-          <option value="9" id="opt-s9">Melhor de 9</option>
-          <option value="11" id="opt-s11">Melhor de 11</option>
-          <option value="0" id="opt-s0">Contínua</option>
+          <option value="1" id="opt-s1">MD1</option>
+          <option value="3" id="opt-s3">MD3</option>
+          <option value="5" id="opt-s5">MD5</option>
+          <option value="7" id="opt-s7">MD7</option>
+          <option value="9" id="opt-s9">MD9</option>
+          <option value="11" id="opt-s11">MD11</option>
+          <option value="0" id="opt-s0">∞ (Direto)</option>
         </select>
       </div>
     </div>
@@ -582,10 +593,16 @@
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', () => {
     navigator.serviceWorker.register('sw.js').then(reg => {
-      console.log('SW Registrado', reg);
-    }).catch(err => {
-      console.log('SW Falhou', err);
-    });
+      reg.onupdatefound = () => {
+        const installingWorker = reg.installing;
+        installingWorker.onstatechange = () => {
+          if (installingWorker.state === 'installed' && navigator.serviceWorker.controller) {
+            // Novo conteúdo disponível, mas não recarrega automaticamente
+            console.log('Nova versão disponível. Feche e abra o app para atualizar.');
+          }
+        };
+      };
+    }).catch(err => console.log('SW Falhou', err));
   });
 }
 
@@ -640,7 +657,7 @@ function t(key, ...args) {
 }
 
 function traduzirInterface() {
-  document.title = "Biriba";
+  document.title = "Biriba V4.0";
   document.getElementById('btn-sec-jog').textContent = t('sec_jog');
   document.getElementById('btn-sec-log').textContent = t('sec_log');
   document.getElementById('btn-sec-int').textContent = t('sec_int');
@@ -686,13 +703,13 @@ function traduzirInterface() {
   document.getElementById('opt-n7').textContent = cfg.lang === 'pt' ? "7 — Difícil" : (cfg.lang === 'en' ? "7 — Hard" : (cfg.lang === 'fr' ? "7 — Difficile" : "7"));
   document.getElementById('opt-n9').textContent = cfg.lang === 'pt' ? "9 — Mestre" : (cfg.lang === 'en' ? "9 — Master" : (cfg.lang === 'fr' ? "9 — Maître" : "9"));
   
-  document.getElementById('opt-s1').textContent = cfg.lang === 'pt' ? "Partida única" : (cfg.lang === 'en' ? "Single match" : (cfg.lang === 'fr' ? "Match unique" : "1"));
-  document.getElementById('opt-s3').textContent = cfg.lang === 'pt' ? "Melhor de 3" : (cfg.lang === 'en' ? "Best of 3" : (cfg.lang === 'fr' ? "Meilleur de 3" : "3"));
-  document.getElementById('opt-s5').textContent = cfg.lang === 'pt' ? "Melhor de 5" : (cfg.lang === 'en' ? "Best of 5" : (cfg.lang === 'fr' ? "Meilleur de 5" : "5"));
-  document.getElementById('opt-s7').textContent = cfg.lang === 'pt' ? "Melhor de 7" : (cfg.lang === 'en' ? "Best of 7" : (cfg.lang === 'fr' ? "Meilleur de 7" : "7"));
-  document.getElementById('opt-s9').textContent = cfg.lang === 'pt' ? "Melhor de 9" : (cfg.lang === 'en' ? "Best of 9" : (cfg.lang === 'fr' ? "Meilleur de 9" : "9"));
-  document.getElementById('opt-s11').textContent = cfg.lang === 'pt' ? "Melhor de 11" : (cfg.lang === 'en' ? "Best of 11" : (cfg.lang === 'fr' ? "Meilleur de 11" : "11"));
-  document.getElementById('opt-s0').textContent = cfg.lang === 'pt' ? "Contínua" : (cfg.lang === 'en' ? "Continuous" : (cfg.lang === 'fr' ? "Continu" : "0"));
+  document.getElementById('opt-s1').textContent = "MD1";
+  document.getElementById('opt-s3').textContent = "MD3";
+  document.getElementById('opt-s5').textContent = "MD5";
+  document.getElementById('opt-s7').textContent = "MD7";
+  document.getElementById('opt-s9').textContent = "MD9";
+  document.getElementById('opt-s11').textContent = "MD11";
+  document.getElementById('opt-s0').textContent = "∞ (Direto)";
   
   render();
 }
@@ -775,7 +792,7 @@ function ehCanastra(meld) { return calcularPontuacaoJogada(meld) >= 100; }
 let cfg = {
   nome1: 'Você', nome2: 'CPU', meleBloqueado: false, doisMelesTrinca: true,
   nivelCPU: 3, serie: 1, verCarta: false, logVisivel: false, toastAtivo: false,
-  orgBotoesVisiveis: false, handWidth: 52, handCols: 8, lixoHeight: 46, lixoCols: 0,
+  orgBotoesVisiveis: false, handWidth: 52, handCols: 8, lixoWidth: 32, lixoCols: 0,
   mesaWidth: 24, lang: 'pt', cheatMode: false, modoJogo: 'PvAI',
   inspecao: false, unlimitedDraw: false, unlimitedDiscard: false,
   isAdmin: false, showFloatingTools: false, isAdminVisible: false
@@ -783,7 +800,7 @@ let cfg = {
 
 function carregarCfg() {
   try {
-    const raw = localStorage.getItem('biriba_cfg_v3_9');
+    const raw = localStorage.getItem('biriba_cfg_v4_0');
     if (raw) Object.assign(cfg, JSON.parse(raw));
     const rawLangs = localStorage.getItem('biriba_custom_langs');
     if (rawLangs) {
@@ -793,15 +810,15 @@ function carregarCfg() {
   } catch (e) {}
 }
 function salvarCfg() {
-  try { localStorage.setItem('biriba_cfg_v3_9', JSON.stringify(cfg)); localStorage.setItem('biriba_custom_langs', JSON.stringify(customLangs)); } catch (e) {}
+  try { localStorage.setItem('biriba_cfg_v4_0', JSON.stringify(cfg)); localStorage.setItem('biriba_custom_langs', JSON.stringify(customLangs)); } catch (e) {}
 }
 
 let G = null; let meldIdCounter = 0; let serieVitorias = [0, 0]; let isProcessingAI = false; let acaoViradaMeldId = null; let secretClicks = 0; let secretTimer = null;
 
-function salvarEstado() { if (!G) return; const save = { ...G, selecionadas: [...G.selecionadas] }; try { localStorage.setItem('biriba_save_v3_9', JSON.stringify(save)); } catch (e) {} }
+function salvarEstado() { if (!G) return; const save = { ...G, selecionadas: [...G.selecionadas] }; try { localStorage.setItem('biriba_save_v4_0', JSON.stringify(save)); } catch (e) {} }
 function carregarEstadoSalvo() {
   try {
-    const raw = localStorage.getItem('biriba_save_v3_9');
+    const raw = localStorage.getItem('biriba_save_v4_0');
     if (raw) { const loaded = JSON.parse(raw); if (loaded && loaded.jogadores) { loaded.selecionadas = new Set(loaded.selecionadas || []); G = loaded; return true; } }
   } catch (e) {}
   return false;
@@ -816,8 +833,12 @@ function novoJogo() {
       { nome: cfg.nome2, mao: [], melds: [], mortosPegos: 0, isCPU: true }
     ],
     monte: [], lixo: [], mortos: [[], []], mortosDono: [null, null], mortosNoJogo: 2,
-    turno: Math.random() < 0.5 ? 0 : 1, fase: 'draw', finalizado: false, selecionadas: new Set(), logs: []
+    turno: Math.random() < 0.5 ? 0 : 1, fase: 'draw', finalizado: false, selecionadas: new Set(), logs: [],
+    turnoInicial: 0, primeiraPuxadaAtiva: false, ultimaPuxadaId: null, lixoOriginal: []
   };
+  G.turnoInicial = G.turno;
+  G.primeiraPuxadaAtiva = (G.turnoInicial === 0); // Se o jogador começa, ele tem o direito
+
   meldIdCounter = 0;
   for (let i = 0; i < 11; i++) { G.jogadores[0].mao.push(deck.pop()); G.jogadores[1].mao.push(deck.pop()); }
   for (let i = 0; i < 11; i++) G.mortos[0].push(deck.pop());
@@ -890,23 +911,102 @@ window.abrirModalAjuda = function(tipo) {
   const el = document.getElementById('ajuda-conteudo'); const titulo = document.getElementById('ajuda-titulo');
   if (tipo === 'regras') {
     titulo.textContent = "Regras Oficiais do Biriba";
-    el.innerHTML = `<h3>1. Material</h3><ul><li>2 baralhos de 52 cartas</li><li>11 cartas na mão</li><li>2 mortos de 11</li></ul>
-      <h3>2. Objetivo</h3><p>Bater: mão vazia, 1 canastra na mesa. Mortos pegos por qualquer jogador.</p>
-      <h3>3. Turno</h3><p>Comprar do monte ou lixo. Baixar/encaixar. Descartar.</p>
-      <h3>4. Melê</h3><p>2 é curinga. Suja=100, Limpa=200. Dois melês só se um for o 2 natural.</p>
-      <h3>5. Jogadas</h3><p>Mín 3 cartas. 7+ = Canastra. Trinca com melê = 0.</p>
-      <h3>6. Exceções de Melê</h3><p>Máx 2 melês por jogada. Exceção: trinca só de 2s pode ter 3+.</p>
-      <h3>7. Virada</h3><p>Pode baixar virada. Revelação obrigatória ao bater/pegar morto.</p>
-      <h3>8. Mortos</h3><p>1º com/sem descarte. 2º só sem descarte.</p>
-      <h3>9. Bater</h3><p>Requisitos: 2 mortos pegos + canastra + mão vazia.</p>
-      <h3>10. Contagem</h3><p>Fase 1: Canastras + Bônus 100. Fase 2: Paga mão. Fase 3: Quem tem mais mesa vence.</p>
-      <h3>11. Desempate</h3><p>Carta maior da mão vence.</p>`;
+    el.innerHTML = `
+      <h3>1. Material e Distribuição</h3>
+      <ul>
+        <li><b>Baralho:</b> 2 baralhos de 52 cartas (104 cartas totais).</li>
+        <li><b>Mão:</b> Cada jogador recebe 11 cartas.</li>
+        <li><b>Mortos:</b> 2 montes de 11 cartas cada, separados.</li>
+        <li><b>Monte:</b> O restante das cartas fica no monte de compra.</li>
+        <li><b>Lixo:</b> Começa vazio.</li>
+      </ul>
+
+      <h3>2. Objetivo do Jogo</h3>
+      <p>O objetivo é <b>bater</b>. Para isso, o jogador deve esvaziar a mão, ter pelo menos uma <b>canastra</b> (jogada de 7+ cartas) baixada na mesa e os dois mortos já devem ter sido pegos (por qualquer um dos jogadores).</p>
+
+      <h3>3. Fluxo do Turno</h3>
+      <p>Na sua vez, você deve seguir esta ordem:</p>
+      <ol>
+        <li><b>Comprar:</b> Pegue a carta do topo do monte OU pegue todas as cartas do lixo.</li>
+        <li><b>Jogar:</b> Baixe novas jogadas (trincas/sequências) ou encaixe cartas nas jogadas que já estão na mesa.</li>
+        <li><b>Descartar:</b> Jogue 1 carta no lixo para encerrar o turno.</li>
+      </ol>
+
+      <h3>4. O Melê (Carta 2)</h3>
+      <p>A carta de valor 2 é o curinga. Ela pode substituir qualquer carta.</p>
+      <ul>
+        <li>Se você usar um melê na jogada, ela é considerada <b>SUJA</b> (vale menos pontos).</li>
+        <li>Se você não usar melê, a jogada é <b>LIMPA</b> (vale mais pontos).</li>
+        <li>Máximo de 2 melês por trinca ou sequência.</li>
+        <li><b>Exceção:</b> Você pode baixar uma "Trinca de Melês" (3 ou mais cartas de valor 2, sem nenhuma outra). Neste caso, a regra do máximo de 2 é ignorada. Se ela tiver 7 cartas, vale 200 pontos.</li>
+        <li><b>Melê deslizante:</b> Se você usar um melê no lugar de uma carta (ex: no meio de uma sequência) e depois colocar a carta real, o melê se desloca para a ponta.</li>
+      </ul>
+
+      <h3>5. Jogadas na Mesa</h3>
+      <ul>
+        <li><b>Mínimo:</b> Toda jogada deve ter pelo menos 3 cartas.</li>
+        <li><b>Trinca:</b> 3 ou mais cartas do mesmo valor (naipes diferentes).</li>
+        <li><b>Sequência:</b> 3 ou mais cartas do mesmo naipe em ordem numérica.</li>
+        <li><b>Ás:</b> Pode valer 1 (antes do 2) ou 14 (depois do Rei). Não pode usar dois Ases na mesma sequência (exceto na jogada A→A).</li>
+        <li><b>Canastra:</b> Qualquer jogada com 7 ou mais cartas. Se for limpa, vale 200. Se for suja, vale 100.</li>
+        <li><b>Trinca Suja:</b> Uma trinca com melê NUNCA vale canastra (mesmo com 7+ cartas), seu valor é 0.</li>
+      </ul>
+
+      <h3>6. Regras Especiais</h3>
+      <ul>
+        <li><b>Primeira Puxada:</b> Apenas no 1º turno do jogo (quem começa), o jogador pode tentar a sorte. Se ele comprar uma carta do monte e não gostar, pode descartá-la. Se descartar exatamente a mesma carta que comprou, ganha o direito de comprar uma segunda vez. Se descartar outra carta, o turno encerra.</li>
+        <li><b>Desfazer o Lixo:</b> Se você pegou o lixo e se arrependeu, pode devolvê-lo. Selecione exatamente o mesmo conjunto de cartas que você pegou do lixo, e o botão "Descartar" mudará para "Devolver". Ao fazer isso, as cartas voltam para o lixo e você pode escolher comprar do monte.</li>
+        <li><b>Jogada Virada:</b> Você pode baixar uma jogada com as cartas viradas para baixo, desde que avise. O adversário não pode ver as cartas até que você as revele. Você deve revelá-las obrigatoriamente se for pegar um morto ou bater.</li>
+      </ul>
+
+      <h3>7. Os Mortos</h3>
+      <ul>
+        <li><b>1º Morto:</b> Pode ser pego com ou sem descarte. Se você esvaziar a mão e pegar o morto, você pode continuar jogando (se não descartou).</li>
+        <li><b>2º Morto:</b> Só pode ser pego se você NÃO descartar na jogada em que esvaziou a mão.</li>
+        <li><b>Reposição:</b> Se o monte acabar, o 1º morto se torna o novo monte. Se acabar de novo, o 2º morto vira monte.</li>
+      </ul>
+
+      <h3>8. Bater e Contagem Final</h3>
+      <p>Para bater, a mão deve estar vazia e você deve ter uma canastra.</p>
+      <ul>
+        <li><b>Quem bateu:</b> Ganha os pontos da mesa + 100 de bônus.</li>
+        <li><b>Quem não bateu:</b> Perde os pontos da mão, mas mantém os pontos da mesa (que servirão para pagar a diferença).</li>
+        <li><b>Contagem passo a passo:</b>
+          <br>1. Conta-se os pontos de Canastra de cada um (incluindo o bônus de 100 para quem bateu).
+          <br>2. Quem tiver menos pontos de canastra, paga a diferença usando os pontos da sua mesa.
+          <br>3. Quem não bateu paga os pontos da mão usando o que sobrou da sua mesa.
+          <br>4. Quem tiver mais pontos de mesa restantes no final, ganha o jogo.</li>
+      </ul>
+
+      <h3>9. Desempate</h3>
+      <p>Se houver empate nos pontos ou se as cartas acabarem, cada jogador tira uma carta do baralho. A maior carta (Ás sendo o maior) ganha.</p>
+    `;
   } else if (tipo === 'manual') {
     titulo.textContent = "Manual de Instruções";
-    el.innerHTML = `<h3>Visão Geral</h3><ul><li><b>Topo:</b> CPU, Monte, Mortos</li><li><b>Mesa:</b> Jogadas</li><li><b>Lixo:</b> Descartadas</li><li><b>Mão:</b> Suas cartas</li></ul>
-      <h3>Ações</h3><ul><li><b>Comprar:</b> Puxa carta</li><li><b>Pegar Lixo:</b> Pega tudo</li><li><b>Baixar:</b> 3+ cartas</li><li><b>Encaixar:</b> 1 carta na mesa</li><li><b>Descartar:</b> Encerra turno</li></ul>
-      <h3>Drag & Drop</h3><p>Arraste as cartas para organizar.</p>
-      <h3>Jogada Virada</h3><p>Clique para virar ou voltar.</p>`;
+    el.innerHTML = `
+      <h3>Visão Geral da Tela</h3>
+      <ul>
+        <li><b>Topo:</b> Informações da CPU, Monte, Mortos.</li>
+        <li><b>Centro:</b> Mesa com as jogadas (trincas/sequências).</li>
+        <li><b>Lixo:</b> A linha horizontal mostra as cartas descartadas. A última está à direita.</li>
+        <li><b>Mão:</b> Suas cartas.</li>
+      </ul>
+      <h3>Ações Rápidas</h3>
+      <ul>
+        <li><b>Comprar:</b> Puxa a carta do topo do monte.</li>
+        <li><b>Pegar Lixo:</b> Pega todas as cartas do lixo.</li>
+        <li><b>Baixar:</b> Selecione 3+ cartas e toque em "Baixar" para criar uma jogada.</li>
+        <li><b>Baixar Virada:</b> Selecione 3+ cartas e toque em "Baixar Virada" para esconder as cartas do adversário.</li>
+        <li><b>Encaixar:</b> Selecione 1 carta e toque na jogada na mesa para adicioná-la.</li>
+        <li><b>Descartar / Devolver:</b> Selecione 1 carta e toque em "Descartar" para encerrar seu turno. Se você pegou o lixo e se arrependeu, selecione as mesmas cartas e o botão mudará para "Devolver".</li>
+      </ul>
+      <h3>Arrastar e Soltar</h3>
+      <p>Você pode tocar e arrastar qualquer carta da sua mão para reorganizá-la como quiser. As cartas novas sempre entram no final da mão.</p>
+      <h3>Jogada Virada</h3>
+      <p>Se você baixou uma jogada virada, pode clicar nela a qualquer momento para "Virar (Revelar)" ou "Voltar para a Mão".</p>
+      <h3>Menu Admin</h3>
+      <p>Clique 11 vezes seguidas no topo "BIRIBA" para revelar o menu Admin (senha: 123). Lá você encontra ferramentas de teste.</p>
+    `;
   }
   document.getElementById('modal-ajuda').classList.add('aberto');
 }
@@ -1068,6 +1168,11 @@ function comprarDoMonte() {
   if (G.fase !== 'draw' || G.finalizado) return;
   if (!reporMonte()) { fimDeJogoPorMonte(); return; }
   const c = G.monte.pop(); G.jogadores[G.turno].mao.push(c);
+  
+  if (G.turno === 0) {
+    G.ultimaPuxadaId = c.id;
+  }
+  
   if (G.turno === 0 && cfg.unlimitedDraw) {} else { G.fase = 'play'; }
   if (G.turno === 0) addLog(cfg.verCarta ? t('log_puxou_voce', `${c.rank}${c.suit}`) : t('log_puxou_voce_oc'));
   else addLog(t('log_puxou_adv'));
@@ -1077,8 +1182,28 @@ function pegarLixo() {
   if (G.fase !== 'draw' || G.finalizado) return;
   if (G.lixo.length === 0) { addLog(cfg.lang === 'pt' ? 'Lixo vazio.' : 'Empty.'); return; }
   const j = G.jogadores[G.turno]; const qtd = G.lixo.length;
+  
+  if (G.turno === 0) {
+    G.lixoOriginal = G.lixo.map(c => c.id);
+  }
+  
   j.mao.push(...G.lixo); G.lixo = []; G.fase = 'play';
   if (G.turno === 0) addLog(t('log_lixo_voce', qtd)); else addLog(t('log_lixo_adv'));
+}
+
+function devolverLixo() {
+  const j = G.jogadores[0];
+  const cartas = G.lixoOriginal.map(id => j.mao.find(c => c.id === id)).filter(Boolean);
+  if (cartas.length !== G.lixoOriginal.length) return;
+  
+  j.mao = j.mao.filter(c => !G.lixoOriginal.includes(c.id));
+  G.lixo.push(...cartas);
+  
+  G.lixoOriginal = [];
+  G.fase = 'draw';
+  G.selecionadas.clear();
+  addLog("Lixo devolvido. Pode comprar novamente.");
+  render();
 }
 
 function verificarMorto(idx, viaDescarte) {
@@ -1169,9 +1294,22 @@ function encaixar(idx, meldId, cardId) {
 function descartar(idx, cardId) {
   if (G.finalizado) return false; const j = G.jogadores[idx]; const card = j.mao.find(c => c.id === cardId); if (!card) return false;
   if (card.rank === '2' && cfg.meleBloqueado && !j.mao.every(c => c.rank === '2')) { addLog('Não pode descartar melê.'); return false; }
+  
   j.mao = j.mao.filter(c => c.id !== cardId); G.lixo.push(card);
   if (idx === 0) addLog(cfg.verCarta ? t('log_descarte_voce', `${card.rank}${card.suit}`) : t('log_descarte_voce_oc'));
   else addLog(t('log_descarte_adv'));
+
+  if (idx === 0 && G.primeiraPuxadaAtiva && G.ultimaPuxadaId === cardId) {
+    G.primeiraPuxadaAtiva = false;
+    addLog("Primeira puxada: mesma carta descartada. Pode puxar novamente.");
+    G.fase = 'draw';
+    verificarMorto(idx, true);
+    render();
+    return true;
+  } else if (idx === 0 && G.primeiraPuxadaAtiva) {
+    G.primeiraPuxadaAtiva = false;
+  }
+
   verificarMorto(idx, true);
   if (idx === 0 && cfg.unlimitedDiscard) render(); else finalizarTurno();
   return true;
@@ -1180,7 +1318,9 @@ function descartar(idx, cardId) {
 function passar() { const j = G.jogadores[G.turno]; if (j.mao.length > 0) return; addLog(`${j.nome} passou.`); finalizarTurno(); }
 
 function finalizarTurno() {
-  if (G.finalizado) return; G.turno = 1 - G.turno; G.fase = 'draw'; G.selecionadas.clear(); render();
+  if (G.finalizado) return; 
+  if (G.turno === 0) G.primeiraPuxadaAtiva = false;
+  G.turno = 1 - G.turno; G.fase = 'draw'; G.selecionadas.clear(); G.lixoOriginal = []; render();
   if (cfg.modoJogo === 'AIvAI' || G.turno === 1) setTimeout(cpuStep, 750);
 }
 
@@ -1428,10 +1568,12 @@ function renderStatus() {
   document.getElementById('cartas-jogador').textContent = j0.mao.length + ' ' + t('cartas'); document.getElementById('cartas-cpu').textContent = j1.mao.length;
   const elCanastra = document.getElementById('canastra-jogador'); elCanastra.textContent = t('canastra'); elCanastra.style.display = j0.melds.some(m => ehCanastra(m)) ? '' : 'none';
   const bs = document.getElementById('badge-serie');
-  if (cfg.serie > 0) bs.textContent = `${serieVitorias[0]} – ${serieVitorias[1]} (${cfg.lang === 'pt' ? 'melhor de' : 'best of'} ${cfg.serie})`; else bs.textContent = `${serieVitorias[0]} – ${serieVitorias[1]}`;
+  if (cfg.serie > 0) bs.textContent = `${serieVitorias[0]} – ${serieVitorias[1]} (MD${cfg.serie})`; 
+  else bs.textContent = `${serieVitorias[0]} – ${serieVitorias[1]}`;
+  
   document.getElementById('org-botoes').style.display = cfg.orgBotoesVisiveis ? 'flex' : 'none';
   document.body.style.setProperty('--hand-w', cfg.handWidth + 'px'); document.body.style.setProperty('--hand-cols', cfg.handCols);
-  document.body.style.setProperty('--lixo-h', cfg.lixoHeight + 'px'); document.body.style.setProperty('--lixo-cols', cfg.lixoCols);
+  document.body.style.setProperty('--lixo-w', cfg.lixoWidth + 'px'); document.body.style.setProperty('--lixo-cols', cfg.lixoCols);
   document.body.style.setProperty('--mesa-w', cfg.mesaWidth + 'px');
   document.getElementById('badge-espectador').style.display = cfg.modoJogo === 'AIvAI' ? 'inline-block' : 'none';
   renderTestToggles();
@@ -1442,18 +1584,29 @@ function renderAcoes() {
   if (cfg.modoJogo === 'AIvAI') { const d = document.createElement('div'); d.className = 'aguarde'; d.textContent = '👁️ Modo Espectador...'; area.appendChild(d); return; }
   const meuTurno = G.turno === 0; const j = G.jogadores[0];
   if (!meuTurno) { const d = document.createElement('div'); d.className = 'aguarde'; d.textContent = t('aguarde'); area.appendChild(d); return; }
+  
   const btn = (txt, fn, enabled, cls) => { const b = document.createElement('button'); b.textContent = txt; b.disabled = !enabled; if (cls) b.className = cls; b.addEventListener('click', fn); area.appendChild(b); };
+  
   if (G.fase === 'draw') {
     const podeComprar = G.monte.length > 0 || G.mortos.some((m, i) => G.mortosDono[i] === null && m.length > 0);
     btn(t('btn_comprar'), () => { comprarDoMonte(); render(); }, podeComprar);
     btn(t('btn_lixo'), () => { pegarLixo(); render(); }, G.lixo.length > 0);
     return;
   }
+  
   if (cfg.unlimitedDraw) { const podeComprar = G.monte.length > 0 || G.mortos.some((m, i) => G.mortosDono[i] === null && m.length > 0); btn('Comprar Mais', () => { comprarDoMonte(); render(); }, podeComprar, ''); }
+  
   const sel = [...G.selecionadas];
-  if (sel.length >= 3) { btn(t('btn_baixar'), () => tentarBaixar(false), true, ''); btn('Baixar Virada', () => tentarBaixar(true), true, ''); }
-  else { btn(t('btn_baixar'), () => {}, false, ''); }
-  btn(t('btn_descartar'), () => { if (sel.length !== 1) return; if (descartar(0, sel[0])) { G.selecionadas.clear(); render(); } }, sel.length === 1);
+  const podeDevolver = G.lixoOriginal.length > 0 && sel.length === G.lixoOriginal.length && sel.every(id => G.lixoOriginal.includes(id));
+
+  if (podeDevolver) {
+    btn('Devolver Lixo', () => devolverLixo(), true, '');
+  } else {
+    if (sel.length >= 3) { btn(t('btn_baixar'), () => tentarBaixar(false), true, ''); btn('Baixar Virada', () => tentarBaixar(true), true, ''); }
+    else { btn(t('btn_baixar'), () => {}, false, ''); }
+    btn(t('btn_descartar'), () => { if (sel.length !== 1) return; if (descartar(0, sel[0])) { G.selecionadas.clear(); render(); } }, sel.length === 1);
+  }
+
   if (podeBater(0)) btn(t('btn_bater'), () => { bater(0); }, true, 'bater');
   if (j.mao.length === 0) btn(t('btn_passar'), () => { passar(); }, true);
 }
@@ -1539,7 +1692,7 @@ function abrirConfig() {
   document.getElementById('cfg-verCarta').checked = cfg.verCarta; document.getElementById('cfg-logVisivel').checked = cfg.logVisivel;
   document.getElementById('cfg-toastAtivo').checked = cfg.toastAtivo; document.getElementById('cfg-orgBotoes').checked = cfg.orgBotoesVisiveis;
   document.getElementById('cfg-hand-w').value = cfg.handWidth; document.getElementById('cfg-hand-cols').value = cfg.handCols;
-  document.getElementById('cfg-lixo-h').value = cfg.lixoHeight; document.getElementById('cfg-lixo-quebra').checked = cfg.lixoCols > 0;
+  document.getElementById('cfg-lixo-w').value = cfg.lixoWidth; document.getElementById('cfg-lixo-quebra').checked = cfg.lixoCols > 0;
   document.getElementById('cfg-lixo-cols').value = cfg.lixoCols > 0 ? cfg.lixoCols : 6; document.getElementById('cfg-mesa-w').value = cfg.mesaWidth;
   document.getElementById('cfg-modoJogo').value = cfg.modoJogo;
   document.getElementById('btn-menu-admin').style.display = cfg.isAdminVisible ? 'block' : 'none';
@@ -1560,7 +1713,7 @@ function salvarConfig() {
   cfg.verCarta = document.getElementById('cfg-verCarta').checked; cfg.logVisivel = document.getElementById('cfg-logVisivel').checked;
   cfg.toastAtivo = document.getElementById('cfg-toastAtivo').checked; cfg.orgBotoesVisiveis = document.getElementById('cfg-orgBotoes').checked;
   cfg.handWidth = parseInt(document.getElementById('cfg-hand-w').value, 10) || 52; cfg.handCols = parseInt(document.getElementById('cfg-hand-cols').value, 10) || 8;
-  cfg.lixoHeight = parseInt(document.getElementById('cfg-lixo-h').value, 10) || 46; cfg.lixoCols = document.getElementById('cfg-lixo-quebra').checked ? (parseInt(document.getElementById('cfg-lixo-cols').value, 10) || 6) : 0;
+  cfg.lixoWidth = parseInt(document.getElementById('cfg-lixo-w').value, 10) || 32; cfg.lixoCols = document.getElementById('cfg-lixo-quebra').checked ? (parseInt(document.getElementById('cfg-lixo-cols').value, 10) || 6) : 0;
   cfg.mesaWidth = parseInt(document.getElementById('cfg-mesa-w').value, 10) || 24; cfg.modoJogo = document.getElementById('cfg-modoJogo').value;
   if (cfg.isAdmin) {
     cfg.inspecao = document.getElementById('cfg-inspecao').checked; cfg.unlimitedDraw = document.getElementById('cfg-unlimitedDraw').checked;
