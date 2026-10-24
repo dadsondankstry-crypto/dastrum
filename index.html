@@ -1,0 +1,1601 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+<title>Biriba</title>
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#0a3d1f">
+<link rel="icon" type="image/svg+xml" href="icons/icon.svg">
+<style>
+  *{box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
+  html,body{margin:0;padding:0;height:100%;overscroll-behavior:none;}
+  body{
+    font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;
+    background:#0a3d1f;
+    background-image:radial-gradient(ellipse at 50% 30%,#146b35 0%,#062a14 100%);
+    color:#f2f2f2;display:flex;flex-direction:column;
+    height:100vh;height:100dvh;overflow:hidden;font-size:14px;
+    user-select:none;
+    --hand-w: 52px;
+    --hand-cols: 8;
+    --lixo-h: 46px;
+    --lixo-cols: 0;
+    --mesa-w: 24px;
+  }
+
+  /* ---------- 1. Cabeçalho Principal ---------- */
+  #topo{
+    flex:0 0 auto;display:flex;align-items:center;gap:6px;
+    padding:6px 8px;background:rgba(0,0,0,.5);
+    border-bottom:1px solid rgba(255,255,255,.08);
+    font-size:12px;
+  }
+  #topo .titulo{font-weight:800;letter-spacing:.5px;color:#ffd54f;display:flex;align-items:center;gap:6px; cursor:pointer; padding: 4px; margin: -4px;}
+  #topo .versao{font-size:9px;color:#a5d6a7;font-weight:600;background:rgba(0,0,0,0.3);padding:1px 4px;border-radius:4px;}
+  #topo .badge-espectador{display:none; background:#c62828; color:#fff; font-weight:bold; font-size:10px; padding:2px 8px; border-radius:10px; margin-left:10px; animation:pulsa 1s infinite alternate;}
+  #topo .esp{flex:1;}
+  #topo button{
+    background:#1b5e20;color:#fff;border:1px solid #2e7d32;
+    border-radius:6px;padding:5px 9px;font-size:14px;font-weight:600;
+    display:flex; align-items:center; justify-content:center;
+  }
+  #topo button:active{background:#2e7d32;}
+
+  /* ---------- 2. Display (Log) ---------- */
+  #log{
+    flex:0 0 auto;height:42px;overflow-y:auto;
+    background:rgba(0,0,0,.6);border-bottom:1px solid rgba(255,255,255,.08);
+    padding:3px 8px;font-size:10px;line-height:1.35;color:#b9dcc4;
+    transition: height 0.2s;
+  }
+  #log.oculto { display: none; }
+  #log div{opacity:.85;}
+  #log div:last-child{color:#ffd54f;opacity:1;font-weight:600;}
+
+  /* ---------- Toasts ---------- */
+  #toast-container{
+    position:fixed;top:50px;right:10px;z-index:200;
+    display:flex;flex-direction:column;gap:6px;align-items:flex-end;
+    pointer-events:none;
+  }
+  .toast{
+    background:rgba(20,50,30,0.95);border:1px solid #2e7d32;
+    color:#fff;padding:8px 12px;border-radius:8px;
+    font-size:12px;font-weight:600;
+    box-shadow:0 4px 12px rgba(0,0,0,0.5);
+    animation: slideIn 0.3s ease-out forwards;
+    max-width: 80vw;
+  }
+  @keyframes slideIn { from { transform: translateX(100%); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
+  @keyframes fadeOut { from { opacity: 1; } to { opacity: 0; transform: translateY(-10px); } }
+
+  /* ---------- 3. Linha Unificada (CPU + Montes) ---------- */
+  #barra-info {
+    flex: 0 0 auto;
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;
+    padding: 4px 8px 6px;
+    background: rgba(0,0,0,.25);
+    border-bottom: 1px solid rgba(255,255,255,.05);
+  }
+  .info-cpu { display: flex; align-items: center; gap: 6px; cursor: pointer; }
+  .info-cpu:active { opacity: 0.7; }
+  .info-cpu b { color: #fff; font-size: 11px; }
+  .info-cpu .card-back {
+    width: 32px; height: 46px;
+    background: linear-gradient(135deg,#1e3a8a,#3b82f6);
+    border: 1px solid #1e40af;
+    border-radius: 5px;
+    box-shadow: 0 2px 4px rgba(0,0,0,.45);
+    position: relative;
+  }
+  .info-cpu .card-back .contagem {
+    position: absolute; right: -8px; bottom: -6px;
+    background: #000; color: #ffd54f;
+    border-radius: 8px; font-size: 10px; font-weight: 800;
+    padding: 1px 5px; border: 1px solid #ffd54f; z-index: 5;
+  }
+  .info-pilhas { display: flex; gap: 8px; }
+  .pilha-item { display: flex; flex-direction: column; align-items: center; gap: 2px; cursor: pointer; }
+  .pilha-item:active { opacity: 0.7; }
+  .pilha-item .rotulo { font-size: 9px; color: #a5d6a7; font-weight: 700; text-transform: uppercase; }
+  .pilha { position: relative; width: 32px; height: 46px; border-radius: 5px; display: flex; align-items: center; justify-content: center; }
+  .pilha .card { position: absolute; top: 0; left: 0; width: 32px; height: 46px; }
+  .pilha .contagem {
+    position: absolute; right: -8px; bottom: -6px; background: #000; color: #ffd54f;
+    border-radius: 8px; font-size: 10px; font-weight: 800; padding: 1px 5px;
+    border: 1px solid #ffd54f; z-index: 5;
+  }
+  .pilha.vazia { border: 1px dashed rgba(255,255,255,.25); background: rgba(0,0,0,.15); }
+  .pilha.vazia::after { content: '—'; color: rgba(255,255,255,.25); font-size: 16px; }
+
+  /* ---------- 4. Mesa Central (Jogadas) ---------- */
+  #mesa-central{
+    flex:1 1 auto; min-height: 80px; overflow-y:auto; overflow-x:hidden;
+    padding:8px 6px; display:flex; flex-direction:column; gap:8px;
+    background:rgba(0,0,0,.15);
+    border-top:1px solid rgba(255,255,255,.06);
+    border-bottom:1px solid rgba(255,255,255,.06);
+    position: relative;
+  }
+  #mesa-central:empty::after {
+    content:'Espaço da Mesa'; color:rgba(255,255,255,.15); font-size:14px;
+    display:flex; align-items:center; justify-content:center;
+    height:100%; width:100%; font-weight:700; text-transform:uppercase; letter-spacing:1px;
+  }
+  #floating-tools { position: absolute; top: 48px; right: 8px; display: none; flex-direction: column; gap: 6px; z-index: 10; }
+  .btn-tool {
+    width: 36px; height: 36px; border-radius: 50%;
+    background: #2e7d32; color: #fff; border: 2px solid #81c784;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 16px; cursor: pointer;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.5); transition: background 0.2s;
+  }
+  .btn-tool.active { background: #c62828; border-color: #ef5350; box-shadow: 0 0 10px rgba(239,83,80,0.8); }
+  .btn-mesa-completa {
+    position: absolute; top: 8px; right: 8px; width: 36px; height: 36px;
+    border-radius: 50%; background: #2e7d32; color: #fff;
+    border: 2px solid #81c784; display: flex; align-items: center; justify-content: center;
+    font-size: 16px; cursor: pointer; z-index: 10; box-shadow: 0 2px 6px rgba(0,0,0,0.5);
+  }
+  .btn-mesa-completa:active { background: #4caf50; }
+  .meld-linha{display:flex;flex-direction:column;gap:4px;}
+  .meld-titulo{ font-size:9px;font-weight:800;text-transform:uppercase; color:#8fd6a3;letter-spacing:.6px; position: sticky; left: 0; }
+  .meld-linha.oponente .meld-titulo{color:#ef9a9a;}
+  .meld-scroll{ display:flex; gap:8px; flex-wrap: wrap; padding:2px 0 6px; }
+  .meld{
+    display:flex;align-items:center;position:relative;
+    background:rgba(0,0,0,.28);border:1px solid rgba(255,255,255,.12);
+    border-radius:7px;padding:4px 6px 4px 4px;flex:0 0 auto; cursor:pointer;
+  }
+  .meld .card{margin-right:-6px; width: var(--mesa-w); height: auto; aspect-ratio: 34/48;}
+  .meld .card:last-of-type{margin-right:0;}
+  .meld-pts{ margin-left:6px;font-size:9px;font-weight:800;color:#aaa; background:rgba(0,0,0,.4);border-radius:6px;padding:1px 5px; }
+  .meld-pts.pos{color:#ffd54f;}
+  .meld.virada { border: 2px solid #4caf50; box-shadow: 0 0 8px rgba(76, 175, 80, 0.6); background: rgba(20, 50, 30, 0.9); }
+  .meld.virada.oculta .card { background: linear-gradient(135deg,#1e3a8a,#3b82f6); border: 1px solid #1e40af; box-shadow: 0 2px 4px rgba(0,0,0,.45); }
+  .meld.virada.oculta .card .r, .meld.virada.oculta .card .s { display: none; }
+
+  /* ---------- 5. Linha do Lixo (Base) ---------- */
+  #area-lixo { flex: 0 0 auto; padding: 4px 8px 8px; background: rgba(0,0,0,.3); display: flex; flex-direction: column; gap: 2px; }
+  #area-lixo .rotulo { font-size: 9px; color: #a5d6a7; font-weight: 700; text-transform: uppercase; text-align: left; }
+  #area-lixo .rotulo span { color: #ffd54f; font-size: 11px; margin-left: 4px; }
+  #lixo-cartas {
+    display: flex; gap: 3px; overflow-x: auto; overflow-y: hidden; height: var(--lixo-h);
+    padding: 2px 2px 2px 12px; background: rgba(0,0,0,.18);
+    border-radius: 6px; scrollbar-width: thin; cursor: pointer; align-items: center; transition: all 0.2s;
+  }
+  #lixo-cartas.grid {
+    display: grid; grid-template-columns: repeat(var(--lixo-cols), minmax(0, 1fr));
+    gap: 4px; height: auto; max-height: 150px; overflow-y: auto; overflow-x: hidden; padding: 4px; align-items: start;
+  }
+  #lixo-cartas .card {
+    height: var(--lixo-h); width: auto; aspect-ratio: 34/48; flex: 0 0 auto;
+    margin-left: -12px; position: relative; box-shadow: -1px 0 4px rgba(0,0,0,0.6); border: 1px solid #aaa;
+  }
+  #lixo-cartas.grid .card { margin-left: 0; width: 100%; height: auto; max-height: var(--lixo-h); box-shadow: 0 2px 4px rgba(0,0,0,0.4); }
+  #lixo-cartas .card:first-child { margin-left: 0; }
+  #lixo-vazio { color: rgba(255,255,255,.35); font-size: 10px; padding: 12px 8px; align-self: center; }
+  #lixo-cartas.grid #lixo-vazio { grid-column: 1 / -1; width: 100%; text-align: center; }
+
+  /* ---------- 6. Linha da Mão e Botões ---------- */
+  #area-jogador { flex: 0 1 auto; min-height: 0; background: rgba(0,0,0,.45); border-top: 1px solid rgba(255,255,255,.1); padding: 6px 8px; display: flex; flex-direction: column; }
+  #org-botoes { display: flex; gap: 4px; justify-content: flex-start; margin-bottom: 4px; }
+  #org-botoes button { flex: 0 1 auto; font-size: 10px; padding: 4px 8px; border-radius: 4px; background: #2e7d32; color: #fff; border: 1px solid #4caf50; font-weight: 700; }
+  #org-botoes button:active { background: #4caf50; }
+  #mao-jogador {
+    display: grid; grid-template-columns: repeat(var(--hand-cols, 8), minmax(0, 1fr)); gap: 4px;
+    justify-items: center; align-content: start; padding-top: 14px; padding-bottom: 10px;
+    max-height: 42vh; overflow-y: auto; overflow-x: hidden; min-height: 60px; transition: all 0.2s;
+  }
+  #mao-jogador > .card { width: 100%; max-width: var(--hand-w, 52px); height: auto; aspect-ratio: 34/48; position: relative; z-index: 1; touch-action: none; }
+  #mao-jogador > .card.sel { z-index: 5; }
+  #mao-jogador > .card .r { font-size: 14px; }
+  #mao-jogador > .card .s { font-size: 16px; }
+  #mao-jogador .vazio { grid-column: 1 / -1; text-align: center; color: #8fd6a3; font-size: 12px; padding: 16px; }
+
+  #acoes { display: flex; gap: 5px; flex-wrap: wrap; justify-content: center; margin-top: 6px; flex: 0 0 auto; }
+  #acoes button {
+    flex: 1 1 auto; min-width: 66px; background: #1b5e20; color: #fff; border: 1px solid #388e3c;
+    border-radius: 8px; padding: 9px 6px; font-size: 12px; font-weight: 700; transition: background .12s;
+  }
+  #acoes button:active:not(:disabled) { background: #388e3c; }
+  #acoes button:disabled { opacity: .32; }
+  #acoes button.bater { background: #c62828; border-color: #ef5350; animation: pulsa 1s infinite alternate; }
+  #acoes button.espectador { background: #c62828; color: #fff; font-size: 14px; padding: 15px; }
+  @keyframes pulsa{from{box-shadow:0 0 0 0 rgba(239,83,80,.7);}to{box-shadow:0 0 0 8px rgba(239,83,80,0);}}
+  .aguarde { width: 100%; text-align: center; color: #a5d6a7; font-size: 12px; font-weight: 600; padding: 8px; }
+
+  /* ---------- Cartas Genéricas ---------- */
+  .card {
+    background: #fff; border-radius: 5px; color: #111; display: flex; flex-direction: column; align-items: center; justify-content: center;
+    font-weight: 800; line-height: 1; flex: 0 0 auto; position: relative; box-shadow: 0 2px 4px rgba(0,0,0,.45);
+    transition: transform .12s, box-shadow .12s; cursor: pointer; width: 40px; height: 56px;
+  }
+  .card .r { font-size: 14px; }
+  .card .s { font-size: 16px; }
+  .card.red { color: #c62828; }
+  .card.wild { box-shadow: 0 0 0 2px #ffd54f, 0 0 10px rgba(255,213,79,.75); }
+  .card.sel { transform: translateY(-12px); box-shadow: 0 0 0 2px #42a5f5, 0 7px 12px rgba(0,0,0,.55); }
+  .card.static { cursor: default; }
+  .card.arrastando { opacity: 0.6; transform: scale(1.1); z-index: 999 !important; }
+
+  /* ---------- Modais ---------- */
+  .modal-fundo { position: fixed; inset: 0; background: rgba(0,0,0,.75); display: none; align-items: center; justify-content: center; padding: 16px; z-index: 100; }
+  .modal-fundo.aberto { display: flex; }
+  .modal { background: #12351f; border: 1px solid #2e7d32; border-radius: 14px; padding: 16px; max-width: 420px; width: 100%; max-height: 86vh; overflow-y: auto; box-shadow: 0 12px 40px rgba(0,0,0,.7); position: relative; }
+  .modal h2 { margin: 0 0 10px; font-size: 18px; color: #ffd54f; }
+  .modal h3 { margin: 16px 0 6px; font-size: 14px; color: #8fd6a3; text-transform: uppercase; letter-spacing: .5px; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 4px;}
+  .modal p, .modal li { font-size: 13px; line-height: 1.5; color: #cfe9d6; margin-bottom: 8px; }
+  .modal ul { padding-left: 20px; margin-top: 4px; }
+  .modal table { width: 100%; border-collapse: collapse; font-size: 13px; }
+  .modal td { padding: 4px 2px; border-bottom: 1px solid rgba(255,255,255,.08); }
+  .modal td:last-child { text-align: right; font-weight: 700; }
+  .modal .total td { border-top: 2px solid #2e7d32; border-bottom: none; padding-top: 7px; color: #ffd54f; font-size: 15px; }
+  .cfg-linha { display: flex; align-items: center; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid rgba(255,255,255,.08); font-size: 13px; }
+  .cfg-linha input[type=text], .cfg-linha input[type=number], .cfg-linha select { background: #0a2416; color: #fff; border: 1px solid #2e7d32; border-radius: 6px; padding: 5px 8px; font-size: 13px; width: 100px; text-align: center; }
+  .cfg-linha input[type=checkbox] { width: 22px; height: 22px; accent-color: #4caf50; }
+  .btn-full { width: 100%; background: #1b5e20; color: #fff; border: 1px solid #388e3c; border-radius: 8px; padding: 12px; margin-top: 10px; font-weight: 700; font-size: 14px; }
+  .cfg-menu-btn { width: 100%; text-align: left; background: #1b5e20; color: #fff; border: 1px solid #2e7d32; border-radius: 8px; padding: 12px 16px; margin-bottom: 8px; font-size: 14px; font-weight: 600; display: flex; justify-content: space-between; align-items: center; }
+  .cfg-menu-btn:active { background: #2e7d32; }
+  .cfg-menu-btn::after { content: '›'; font-size: 18px; font-weight: 400; }
+  .btn-voltar { background: #333; color: #fff; border: none; padding: 4px 10px; border-radius: 6px; font-size: 12px; margin-bottom: 10px; cursor: pointer; }
+  .neg { color: #ef9a9a; } .pos { color: #a5d6a7; }
+  #hist-conteudo { font-size: 12px; line-height: 1.4; color: #cfe9d6; white-space: pre-wrap; font-family: monospace; }
+  #hist-conteudo div { padding: 2px 0; border-bottom: 1px solid rgba(255,255,255,.05); }
+</style>
+</head>
+<body>
+
+<div id="topo">
+  <span class="titulo" id="titulo-secreto">BIRIBA <span class="versao">PWA</span></span>
+  <span class="badge" id="badge-serie" style="margin-left:10px;">—</span>
+  <span class="badge-espectador" id="badge-espectador">👁️ ESPECTADOR</span>
+  <span class="esp"></span>
+  <button id="btn-fullscreen" title="Tela Cheia">⛶</button>
+  <button id="btn-config" title="Menu">⚙️</button>
+</div>
+
+<div id="toast-container"></div>
+<div id="log" class="oculto"></div>
+
+<div id="barra-info">
+  <div class="info-cpu" onclick="abrirInspecao('cpu')">
+    <b id="nome-cpu">CPU</b>
+    <div class="card-back"><div class="contagem" id="cartas-cpu">11</div></div>
+  </div>
+  <div class="info-pilhas">
+    <div class="pilha-item" onclick="abrirInspecao('monte')">
+      <div class="rotulo" id="lbl-monte">Monte</div>
+      <div class="pilha" id="p-monte"></div>
+    </div>
+    <div class="pilha-item" onclick="abrirInspecao('m0')">
+      <div class="rotulo" id="lbl-m0">1º Morto</div>
+      <div class="pilha" id="p-m0"></div>
+    </div>
+    <div class="pilha-item" onclick="abrirInspecao('m1')">
+      <div class="rotulo" id="lbl-m1">2º Morto</div>
+      <div class="pilha" id="p-m1"></div>
+    </div>
+  </div>
+</div>
+
+<div id="mesa-central">
+  <div id="floating-tools">
+    <button class="btn-tool" id="btn-tool-inspect" onclick="toggleTest('inspecao')" title="Inspeção">🔍</button>
+    <button class="btn-tool" id="btn-tool-draw" onclick="toggleTest('unlimitedDraw')" title="Compra Ilimitada">♾️</button>
+    <button class="btn-tool" id="btn-tool-discard" onclick="toggleTest('unlimitedDiscard')" title="Descarte Ilimitado">🗑️</button>
+    <button class="btn-tool" id="btn-tool-cheat" onclick="toggleTest('cheatMode')" title="Modo Cheat">👁️</button>
+  </div>
+  <button class="btn-mesa-completa" id="btn-ver-mesa" title="Ver mesa completa">🔍</button>
+</div>
+
+<div id="area-lixo">
+  <div class="rotulo"><span id="lbl-lixo">Lixo</span> <span id="lixo-contador">0</span></div>
+  <div id="lixo-cartas" onclick="abrirModalLixo()"></div>
+</div>
+
+<div id="area-jogador">
+  <div class="linha-info" style="justify-content:flex-start;padding-bottom:3px;">
+    <b id="nome-jogador">Você</b>
+    <span class="badge" id="cartas-jogador">11 cartas</span>
+    <span class="badge ok" id="canastra-jogador" style="display:none">CANASTRA</span>
+  </div>
+  <div id="org-botoes" style="display: none;">
+    <button id="btn-org-naipe" onclick="organizarMao('naipe')">Naipes</button>
+    <button id="btn-org-seq" onclick="organizarMao('sequencia')">Sequência</button>
+    <button id="btn-org-trinca" onclick="organizarMao('trinca')">Trinca</button>
+  </div>
+  <div id="mao-jogador"></div>
+  <div id="acoes"></div>
+</div>
+
+<div class="modal-fundo" id="modal-fim">
+  <div class="modal">
+    <h2 id="fim-titulo">Fim de Jogo</h2>
+    <div id="fim-conteudo"></div>
+    <button id="fim-btn" style="width:100%;margin-top:12px;background:#2e7d32;color:#fff;border:none;border-radius:9px;padding:12px;font-size:14px;font-weight:700;">Continuar</button>
+  </div>
+</div>
+
+<div class="modal-fundo" id="modal-cfg">
+  <div class="modal">
+    <div id="cfg-header">
+      <h2 id="cfg-titulo">Menu</h2>
+      <button class="btn-voltar" id="cfg-voltar" style="display:none;" onclick="voltarMenuCfg()">⬅ Voltar</button>
+    </div>
+    
+    <div id="cfg-menu-principal">
+      <button class="cfg-menu-btn" onclick="abrirSecaoCfg('jogadores')" id="btn-sec-jog">Jogadores</button>
+      <button class="cfg-menu-btn" onclick="abrirSecaoCfg('log')" id="btn-sec-log">Log e Privacidade</button>
+      <button class="cfg-menu-btn" onclick="abrirSecaoCfg('interface')" id="btn-sec-int">Interface e Jogabilidade</button>
+      <button class="cfg-menu-btn" onclick="abrirModalAjuda('regras')">Regras do Jogo</button>
+      <button class="cfg-menu-btn" onclick="abrirModalAjuda('manual')">Manual de Instruções</button>
+      <button class="cfg-menu-btn" onclick="abrirSecaoCfg('idioma')" id="btn-sec-idioma">Idioma / Language</button>
+      
+      <hr style="border-color:rgba(255,255,255,0.1); margin: 16px 0;">
+      
+      <button class="cfg-menu-btn" id="btn-hist-menu" style="color:#ffd54f">📜 Histórico Completo</button>
+      <button class="cfg-menu-btn" id="btn-novo-menu" style="color:#ef9a9a">🔄 Iniciar Novo Jogo</button>
+      <button class="cfg-menu-btn" id="btn-menu-admin" onclick="abrirSecaoCfg('admin')" style="color:#ffd54f; border-color:#ffd54f; display:none;">🔐 Admin / Ferramentas</button>
+    </div>
+
+    <div id="cfg-sec-jogadores" class="cfg-secao" style="display:none">
+      <div class="cfg-linha">
+        <span id="lbl-cfg-nome1">Seu nome</span>
+        <input type="text" id="cfg-nome1" maxlength="14">
+      </div>
+      <div class="cfg-linha">
+        <span id="lbl-cfg-nome2">Nome do oponente</span>
+        <input type="text" id="cfg-nome2" maxlength="14">
+      </div>
+      <div class="cfg-linha">
+        <span>Modo de Jogo</span>
+        <select id="cfg-modoJogo">
+          <option value="PvAI">Jogador vs CPU</option>
+          <option value="AIvAI">CPU vs CPU (Espectador)</option>
+        </select>
+      </div>
+    </div>
+
+    <div id="cfg-sec-log" class="cfg-secao" style="display:none">
+      <div class="cfg-linha">
+        <span id="lbl-cfg-vercarta">Ver carta puxada/descartada</span>
+        <input type="checkbox" id="cfg-verCarta">
+      </div>
+      <div class="cfg-linha">
+        <span id="lbl-cfg-logvis">Exibir painel de log</span>
+        <input type="checkbox" id="cfg-logVisivel">
+      </div>
+      <div class="cfg-linha">
+        <span id="lbl-cfg-toast">Exibir toasts</span>
+        <input type="checkbox" id="cfg-toastAtivo">
+      </div>
+    </div>
+
+    <div id="cfg-sec-interface" class="cfg-secao" style="display:none">
+      <h3>Tamanho das Cartas</h3>
+      <div class="cfg-linha">
+        <span>Largura da Carta (Mão) - px</span>
+        <input type="number" id="cfg-hand-w" min="30" max="100" step="2">
+      </div>
+      <div class="cfg-linha">
+        <span>Largura da Carta (Mesa) - px</span>
+        <input type="number" id="cfg-mesa-w" min="15" max="60" step="2">
+      </div>
+      <div class="cfg-linha">
+        <span>Altura da Carta (Lixo) - px</span>
+        <input type="number" id="cfg-lixo-h" min="30" max="80" step="2">
+      </div>
+      
+      <h3>Organização</h3>
+      <div class="cfg-linha">
+        <span>Cartas por linha (Mão)</span>
+        <input type="number" id="cfg-hand-cols" min="3" max="12">
+      </div>
+      <div class="cfg-linha">
+        <span>Lixo quebra linha?</span>
+        <input type="checkbox" id="cfg-lixo-quebra">
+      </div>
+      <div class="cfg-linha">
+        <span>Cartas por linha (Lixo)</span>
+        <input type="number" id="cfg-lixo-cols" min="3" max="15">
+      </div>
+      <div class="cfg-linha">
+        <span id="lbl-cfg-org">Exibir botões de organizar</span>
+        <input type="checkbox" id="cfg-orgBotoes">
+      </div>
+    </div>
+
+    <div id="cfg-sec-regras" class="cfg-secao" style="display:none">
+      <div class="cfg-linha">
+        <span id="lbl-cfg-meles">Melê Bloqueado (Regra Antiga)</span>
+        <input type="checkbox" id="cfg-meles">
+      </div>
+      <div class="cfg-linha">
+        <span id="lbl-cfg-dois">Máx. 2 melês na trinca</span>
+        <input type="checkbox" id="cfg-dois">
+      </div>
+      <div class="cfg-linha">
+        <span id="lbl-cfg-nivel">Nível da CPU</span>
+        <select id="cfg-nivel">
+          <option value="1" id="opt-n1">1 — Fácil</option>
+          <option value="3" id="opt-n3">3 — Normal</option>
+          <option value="5" id="opt-n5">5 — Médio</option>
+          <option value="7" id="opt-n7">7 — Difícil</option>
+          <option value="9" id="opt-n9">9 — Mestre</option>
+        </select>
+      </div>
+      <div class="cfg-linha">
+        <span id="lbl-cfg-serie">Série</span>
+        <select id="cfg-serie">
+          <option value="1" id="opt-s1">Partida única</option>
+          <option value="3" id="opt-s3">Melhor de 3</option>
+          <option value="5" id="opt-s5">Melhor de 5</option>
+          <option value="7" id="opt-s7">Melhor de 7</option>
+          <option value="9" id="opt-s9">Melhor de 9</option>
+          <option value="11" id="opt-s11">Melhor de 11</option>
+          <option value="0" id="opt-s0">Contínua</option>
+        </select>
+      </div>
+    </div>
+
+    <div id="cfg-sec-idioma" class="cfg-secao" style="display:none">
+      <button class="cfg-menu-btn" onclick="abrirModalIdioma()" style="margin-top:10px;">
+        <span id="lbl-idioma-atual">Português</span>
+      </button>
+      <button class="cfg-menu-btn" onclick="carregarIdiomasServidor()" style="margin-top:10px; color:#ffd54f;">🌐 Baixar Idiomas do Servidor</button>
+    </div>
+
+    <div id="cfg-sec-admin" class="cfg-secao" style="display:none">
+      <p style="font-size:12px; color:#cfe9d6; margin-bottom:10px;">Ferramentas exclusivas para testes. Não afetam as regras oficiais.</p>
+      
+      <div class="cfg-linha">
+        <span>Inspeção de Cartas</span>
+        <input type="checkbox" id="cfg-inspecao">
+      </div>
+      <div class="cfg-linha">
+        <span>Compra Ilimitada no Monte</span>
+        <input type="checkbox" id="cfg-unlimitedDraw">
+      </div>
+      <div class="cfg-linha">
+        <span>Descarte Ilimitado</span>
+        <input type="checkbox" id="cfg-unlimitedDiscard">
+      </div>
+      <div class="cfg-linha">
+        <span>Modo Cheat (Histórico)</span>
+        <input type="checkbox" id="cfg-cheatMode">
+      </div>
+
+      <button class="btn-full" id="btn-toggle-tools" onclick="toggleFloatingTools()" style="background:#1b5e20; margin-top:15px;">Ocultar Ícones de Teste</button>
+      
+      <hr style="border-color:rgba(255,255,255,0.1); margin: 15px 0;">
+      <h3>Ferramentas de Idioma (Admin)</h3>
+      <button class="cfg-menu-btn" onclick="baixarModeloIdioma()">🤖 Baixar Modelo p/ IA</button>
+      <button class="cfg-menu-btn" onclick="abrirInstrucoesIA()">📝 Ver Instruções p/ IA</button>
+      <button class="cfg-menu-btn" onclick="document.getElementById('input-importar-idioma').click()">📥 Importar (.json) Manual</button>
+      <input type="file" id="input-importar-idioma" accept=".json" multiple style="display:none" onchange="importarIdiomaManual(event)">
+      <hr style="border-color:rgba(255,255,255,0.1); margin: 15px 0;">
+
+      <button class="btn-full" onclick="ocultarAdmin()" style="background:#333; margin-top:15px;">Ocultar Menu Admin</button>
+      <button class="btn-full" onclick="restaurarPadraoAdmin()" style="background:#c62828; margin-top:10px;">Restaurar Padrão</button>
+    </div>
+
+    <button id="cfg-salvar" style="width:100%;margin-top:16px;background:#2e7d32;color:#fff;border:none;border-radius:9px;padding:12px;font-size:14px;font-weight:700;">Salvar e Voltar ao Jogo</button>
+  </div>
+</div>
+
+<div class="modal-fundo" id="modal-idioma">
+  <div class="modal">
+    <h2 id="lbl-idioma-titulo">Selecione o Idioma</h2>
+    <div id="lista-idiomas" style="margin-top:10px; margin-bottom:15px;"></div>
+    <button class="btn-voltar" onclick="fecharModalIdioma()" style="width:100%; margin-top:10px;">Fechar</button>
+  </div>
+</div>
+
+<div class="modal-fundo" id="modal-confirm">
+  <div class="modal">
+    <h2 id="confirm-titulo">Confirmação</h2>
+    <p id="confirm-msg" style="font-size:14px; color:#cfe9d6; margin-bottom:20px;"></p>
+    <div style="display:flex; gap:10px;">
+      <button id="confirm-btn-cancel" style="background:#444; flex:1; width:auto; margin:0;">Cancelar</button>
+      <button id="confirm-btn-ok" style="background:#c62828; flex:1; width:auto; margin:0;">OK</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal-fundo" id="modal-senha">
+  <div class="modal">
+    <h2>Senha Admin</h2>
+    <input type="password" id="senha-input" inputmode="numeric" pattern="[0-9]*" onkeydown="if(event.key === 'Enter') verificarSenha()" style="width:100%; padding:10px; border-radius:6px; border:1px solid #2e7d32; background:#0a2416; color:#fff; text-align:center; font-size:20px; letter-spacing: 4px; margin-bottom:15px;" placeholder="****">
+    <div style="display:flex; gap:10px;">
+      <button onclick="document.getElementById('modal-senha').classList.remove('aberto')" style="background:#444; flex:1; width:auto; margin:0;">Cancelar</button>
+      <button onclick="verificarSenha()" style="background:#2e7d32; flex:1; width:auto; margin:0;">Entrar</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal-fundo" id="modal-acao-virada">
+  <div class="modal">
+    <h2>Jogada Virada</h2>
+    <p style="font-size:13px; color:#cfe9d6; margin-bottom:15px;">O que deseja fazer com esta jogada?</p>
+    <button onclick="acaoVirada('revelar')" style="width:100%;margin-bottom:10px;background:#1b5e20;color:#fff;border:1px solid #4caf50;border-radius:9px;padding:12px;font-size:14px;font-weight:700;">Virar (Revelar) na Mesa</button>
+    <button onclick="acaoVirada('voltar')" style="width:100%;margin-bottom:10px;background:#c62828;color:#fff;border:1px solid #ef5350;border-radius:9px;padding:12px;font-size:14px;font-weight:700;">Voltar para a Mão</button>
+    <button onclick="document.getElementById('modal-acao-virada').classList.remove('aberto')" style="width:100%;background:#444;color:#fff;border:none;border-radius:9px;padding:12px;font-size:14px;font-weight:700;">Cancelar</button>
+  </div>
+</div>
+
+<div class="modal-fundo" id="modal-ajuda">
+  <div class="modal">
+    <h2 id="ajuda-titulo">Manual</h2>
+    <div id="ajuda-conteudo"></div>
+    <button onclick="document.getElementById('modal-ajuda').classList.remove('aberto')" style="width:100%;margin-top:16px;background:#2e7d32;color:#fff;border:none;border-radius:9px;padding:12px;font-size:14px;font-weight:700;">Entendido</button>
+  </div>
+</div>
+
+<div class="modal-fundo" id="modal-instrucoes-ia">
+  <div class="modal">
+    <h2>Instruções para IA</h2>
+    <p style="font-size:13px; color:#cfe9d6; margin-bottom:10px;">Copie o texto abaixo e envie para a Inteligência Artificial junto com o arquivo modelo baixado. Ela retornará o arquivo traduzido para você importar.</p>
+    <textarea id="texto-instrucoes" style="width:100%; height:200px; background:#0a2416; color:#fff; border:1px solid #2e7d32; border-radius:6px; padding:8px; font-family:monospace; font-size:12px; resize:none;" readonly></textarea>
+    <button onclick="copiarInstrucoes()" style="width:100%;margin-top:10px;background:#1b5e20;color:#fff;border:none;border-radius:9px;padding:12px;font-size:14px;font-weight:700;">Copiar Texto</button>
+    <button onclick="document.getElementById('modal-instrucoes-ia').classList.remove('aberto')" style="width:100%;margin-top:10px;background:#444;color:#fff;border:none;border-radius:9px;padding:12px;font-size:14px;font-weight:700;">Fechar</button>
+  </div>
+</div>
+
+<div class="modal-fundo" id="modal-hist">
+  <div class="modal">
+    <h2 id="lbl-hist-titulo">Histórico Completo</h2>
+    <div id="hist-conteudo"></div>
+    <button onclick="document.getElementById('modal-hist').classList.remove('aberto')" id="btn-hist-fechar" style="width:100%;margin-top:12px;background:#2e7d32;color:#fff;border:none;border-radius:9px;padding:12px;font-size:14px;font-weight:700;">Fechar</button>
+  </div>
+</div>
+
+<div class="modal-fundo" id="modal-lixo">
+  <div class="modal">
+    <h2 id="lbl-lixo-titulo">Lixo Completo</h2>
+    <div id="modal-lixo-conteudo" style="display:flex; flex-wrap:wrap; gap:8px; justify-content:center;"></div>
+    <button onclick="document.getElementById('modal-lixo').classList.remove('aberto')" id="btn-lixo-fechar" style="width:100%;margin-top:12px;background:#2e7d32;color:#fff;border:none;border-radius:9px;padding:12px;font-size:14px;font-weight:700;">Fechar</button>
+  </div>
+</div>
+
+<div class="modal-fundo" id="modal-mesa">
+  <div class="modal">
+    <h2 id="lbl-mesa-titulo">Jogadas na Mesa</h2>
+    <div id="modal-mesa-conteudo"></div>
+    <button onclick="document.getElementById('modal-mesa').classList.remove('aberto')" id="btn-mesa-fechar" style="width:100%;margin-top:12px;background:#2e7d32;color:#fff;border:none;border-radius:9px;padding:12px;font-size:14px;font-weight:700;">Fechar</button>
+  </div>
+</div>
+
+<div class="modal-fundo" id="modal-inspecao">
+  <div class="modal">
+    <h2 id="inspecao-titulo">Inspeção</h2>
+    <div id="inspecao-conteudo" style="display:flex; flex-wrap:wrap; gap:8px; justify-content:center;"></div>
+    <button onclick="document.getElementById('modal-inspecao').classList.remove('aberto')" style="width:100%;margin-top:12px;background:#2e7d32;color:#fff;border:none;border-radius:9px;padding:12px;font-size:14px;font-weight:700;">Fechar</button>
+  </div>
+</div>
+
+<script>
+// --- SERVICE WORKER REGISTER ---
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('sw.js').then(reg => {
+      console.log('SW Registrado', reg);
+    }).catch(err => {
+      console.log('SW Falhou', err);
+    });
+  });
+}
+
+'use strict';
+
+const SUITS = ['♠','♥','♦','♣'];
+const RANKS = ['A','2','3','4','5','6','7','8','9','10','J','Q','K'];
+const RED_SUITS = new Set(['♥','♦']);
+
+const ORDEM_NAIPE = { '♥': 1, '♦': 2, '♠': 3, '♣': 4 };
+const ORDEM_NUM = { '2':2, '3':3, '4':4, '5':5, '6':6, '7':7, '8':8, '9':9, '10':10, 'J':11, 'Q':12, 'K':13, 'A':14 };
+
+const TRANSLATIONS = {
+  pt: {
+    menu: "Menu", voltar: "⬅ Voltar", sec_jog: "Jogadores", sec_log: "Log e Privacidade", sec_int: "Interface e Jogabilidade", sec_reg: "Regras do Jogo", sec_idioma: "Idioma / Language",
+    hist_btn: "📜 Histórico Completo", novo_btn: "🔄 Iniciar Novo Jogo", salvar: "Salvar e Voltar ao Jogo",
+    seu_nome: "Seu nome", nome_op: "Nome do oponente", ver_carta: "Ver carta puxada/descartada", exibir_log: "Exibir painel de log", exibir_toasts: "Exibir toasts",
+    exibir_org: "Exibir botões de organizar", largura_carta: "Tamanho da Carta (Mão)", cartas_linha: "Cartas por linha", mele_ativo: "Melê Bloqueado (Regra Antiga)", max_2: "Máx. 2 melês na trinca",
+    nivel_cpu: "Nível da CPU", serie: "Série", voz: "Você", cpu: "CPU", m0: "1º Morto", m1: "2º Morto", monte: "Monte", lixo: "Lixo", cartas: "cartas", canastra: "CANASTRA",
+    btn_comprar: "Comprar", btn_lixo: "Pegar Lixo", btn_baixar: "Baixar", btn_descartar: "Descartar", btn_passar: "Passar", btn_bater: "BATER!", aguarde: "⏳ Vez do oponente...",
+    org_naipe: "Naipes", org_seq: "Sequência", org_trinca: "Trinca", hist_titulo: "Histórico Completo", lixo_titulo: "Lixo Completo", mesa_titulo: "Jogadas na Mesa",
+    fechar: "Fechar", confirmar: "Confirmação", cancelar: "Cancelar", ok: "OK", fim_titulo: "Fim de Jogo", vencedor: "Vencedor: {0}", bateu: "🏆 {0} bateu!",
+    pontos_mao: "Pontos na mão", pontos_mesa: "Pontos na mesa", bonus: "Bônus por bater", castigo: "Castigo (não bateu)", total: "Total", saldo: "Saldo: {0}", continuar: "Continuar",
+    log_novo_jogo: "Novo jogo! {0} começa.", log_puxou_voce: "Você puxou {0}", log_puxou_voce_oc: "Você puxou uma carta", log_puxou_adv: "Adversário puxou do monte",
+    log_lixo_voce: "Você pegou as cartas da mesa ({0} cartas)", log_lixo_adv: "Adversário pegou as cartas da mesa", log_descarte_voce: "Você descartou {0}", log_descarte_voce_oc: "Você descartou uma carta",
+    log_descarte_adv: "Adversário descartou", log_morto: "{0} pegou o {1}º morto ({2} cartas)!", log_baixou: "{0} baixou {1} ({2} cartas).", log_encaixou: "{0} encaixou uma carta.",
+    log_bateu: "🏆 {0} BATEU!", log_monte_vazio: "Monte vazio: {0}º morto virou monte ({1} cartas).", msg_novo_jogo: "Iniciar um novo jogo? A partida atual será perdida.", idioma_atual: "Português"
+  },
+  en: {
+    menu: "Menu", voltar: "⬅ Back", sec_jog: "Players", sec_log: "Log & Privacy", sec_int: "Interface & Gameplay", sec_reg: "Game Rules", sec_idioma: "Language / Idioma",
+    hist_btn: "📜 Full History", novo_btn: "🔄 Start New Game", salvar: "Save and Return to Game",
+    seu_nome: "Your name", nome_op: "Opponent's name", ver_carta: "See drawn/discarded card", exibir_log: "Show log panel", exibir_toasts: "Show toasts",
+    exibir_org: "Show organize buttons", largura_carta: "Card width (Hand)", cartas_linha: "Cards per row", mele_ativo: "Joker Blocked (Old Rule)", max_2: "Max 2 jokers in sets",
+    nivel_cpu: "CPU Level", serie: "Series", voz: "You", cpu: "CPU", m0: "1st Dead", m1: "2nd Dead", monte: "Deck", lixo: "Discard", cartas: "cards", canastra: "CANASTRA",
+    btn_comprar: "Draw", btn_lixo: "Take Discard", btn_baixar: "Lay Down", btn_descartar: "Discard", btn_passar: "Pass", btn_bater: "WIN!", aguarde: "⏳ Opponent's turn...",
+    org_naipe: "Suits", org_seq: "Sequence", org_trinca: "Sets", hist_titulo: "Full History", lixo_titulo: "Full Discard", mesa_titulo: "Table Plays",
+    fechar: "Close", confirmar: "Confirmation", cancelar: "Cancel", ok: "OK", fim_titulo: "Game Over", vencedor: "Winner: {0}", bateu: "🏆 {0} won!",
+    pontos_mao: "Points in hand", pontos_mesa: "Points on table", bonus: "Win bonus", castigo: "Penalty (didn't win)", total: "Total", saldo: "Score: {0}", continuar: "Continue",
+    log_novo_jogo: "New game! {0} starts.", log_puxou_voce: "You drew {0}", log_puxou_voce_oc: "You drew a card", log_puxou_adv: "Opponent drew from deck",
+    log_lixo_voce: "You took the discard pile ({0} cards)", log_lixo_adv: "Opponent took the discard pile", log_descarte_voce: "You discarded {0}", log_descarte_voce_oc: "You discarded a card",
+    log_descarte_adv: "Opponent discarded", log_morto: "{0} took the {1} dead hand ({2} cards)!", log_baixou: "{0} laid down {1} ({2} cards).", log_encaixou: "{0} added a card.",
+    log_bateu: "🏆 {0} WON!", log_monte_vazio: "Deck empty: {0} dead hand became deck ({1} cards).", msg_novo_jogo: "Start a new game? Current match will be lost.", idioma_atual: "English"
+  }
+};
+
+let customLangs = {};
+
+function t(key, ...args) {
+  let str = TRANSLATIONS[cfg.lang]?.[key] || TRANSLATIONS['pt'][key] || key;
+  args.forEach((arg, i) => { str = str.replace(`{${i}}`, arg); });
+  return str;
+}
+
+function traduzirInterface() {
+  document.title = "Biriba";
+  document.getElementById('btn-sec-jog').textContent = t('sec_jog');
+  document.getElementById('btn-sec-log').textContent = t('sec_log');
+  document.getElementById('btn-sec-int').textContent = t('sec_int');
+  document.getElementById('btn-sec-idioma').textContent = t('sec_idioma');
+  document.getElementById('btn-hist-menu').textContent = t('hist_btn');
+  document.getElementById('btn-novo-menu').textContent = t('novo_btn');
+  document.getElementById('cfg-salvar').textContent = t('salvar');
+  
+  document.getElementById('lbl-cfg-nome1').textContent = t('seu_nome');
+  document.getElementById('lbl-cfg-nome2').textContent = t('nome_op');
+  document.getElementById('lbl-cfg-vercarta').textContent = t('ver_carta');
+  document.getElementById('lbl-cfg-logvis').textContent = t('exibir_log');
+  document.getElementById('lbl-cfg-toast').textContent = t('exibir_toasts');
+  document.getElementById('lbl-cfg-org').textContent = t('exibir_org');
+  document.getElementById('lbl-cfg-meles').textContent = t('mele_ativo');
+  document.getElementById('lbl-cfg-dois').textContent = t('max_2');
+  document.getElementById('lbl-cfg-nivel').textContent = t('nivel_cpu');
+  document.getElementById('lbl-cfg-serie').textContent = t('serie');
+  document.getElementById('lbl-idioma-atual').textContent = t('idioma_atual');
+  
+  document.getElementById('lbl-monte').textContent = t('monte');
+  document.getElementById('lbl-m0').textContent = t('m0');
+  document.getElementById('lbl-m1').textContent = t('m1');
+  document.getElementById('lbl-lixo').textContent = t('lixo');
+  document.getElementById('btn-org-naipe').textContent = t('org_naipe');
+  document.getElementById('btn-org-seq').textContent = t('org_seq');
+  document.getElementById('btn-org-trinca').textContent = t('org_trinca');
+  
+  document.getElementById('lbl-hist-titulo').textContent = t('hist_titulo');
+  document.getElementById('lbl-lixo-titulo').textContent = t('lixo_titulo');
+  document.getElementById('lbl-mesa-titulo').textContent = t('mesa_titulo');
+  document.getElementById('btn-hist-fechar').textContent = t('fechar');
+  document.getElementById('btn-lixo-fechar').textContent = t('fechar');
+  document.getElementById('btn-mesa-fechar').textContent = t('fechar');
+  document.getElementById('fim-btn').textContent = t('continuar');
+  
+  document.getElementById('confirm-btn-cancel').textContent = t('cancelar');
+  document.getElementById('confirm-btn-ok').textContent = t('ok');
+  
+  document.getElementById('opt-n1').textContent = cfg.lang === 'pt' ? "1 — Fácil" : (cfg.lang === 'en' ? "1 — Easy" : (cfg.lang === 'fr' ? "1 — Facile" : "1"));
+  document.getElementById('opt-n3').textContent = cfg.lang === 'pt' ? "3 — Normal" : (cfg.lang === 'en' ? "3 — Normal" : (cfg.lang === 'fr' ? "3 — Normal" : "3"));
+  document.getElementById('opt-n5').textContent = cfg.lang === 'pt' ? "5 — Médio" : (cfg.lang === 'en' ? "5 — Medium" : (cfg.lang === 'fr' ? "5 — Moyen" : "5"));
+  document.getElementById('opt-n7').textContent = cfg.lang === 'pt' ? "7 — Difícil" : (cfg.lang === 'en' ? "7 — Hard" : (cfg.lang === 'fr' ? "7 — Difficile" : "7"));
+  document.getElementById('opt-n9').textContent = cfg.lang === 'pt' ? "9 — Mestre" : (cfg.lang === 'en' ? "9 — Master" : (cfg.lang === 'fr' ? "9 — Maître" : "9"));
+  
+  document.getElementById('opt-s1').textContent = cfg.lang === 'pt' ? "Partida única" : (cfg.lang === 'en' ? "Single match" : (cfg.lang === 'fr' ? "Match unique" : "1"));
+  document.getElementById('opt-s3').textContent = cfg.lang === 'pt' ? "Melhor de 3" : (cfg.lang === 'en' ? "Best of 3" : (cfg.lang === 'fr' ? "Meilleur de 3" : "3"));
+  document.getElementById('opt-s5').textContent = cfg.lang === 'pt' ? "Melhor de 5" : (cfg.lang === 'en' ? "Best of 5" : (cfg.lang === 'fr' ? "Meilleur de 5" : "5"));
+  document.getElementById('opt-s7').textContent = cfg.lang === 'pt' ? "Melhor de 7" : (cfg.lang === 'en' ? "Best of 7" : (cfg.lang === 'fr' ? "Meilleur de 7" : "7"));
+  document.getElementById('opt-s9').textContent = cfg.lang === 'pt' ? "Melhor de 9" : (cfg.lang === 'en' ? "Best of 9" : (cfg.lang === 'fr' ? "Meilleur de 9" : "9"));
+  document.getElementById('opt-s11').textContent = cfg.lang === 'pt' ? "Melhor de 11" : (cfg.lang === 'en' ? "Best of 11" : (cfg.lang === 'fr' ? "Meilleur de 11" : "11"));
+  document.getElementById('opt-s0').textContent = cfg.lang === 'pt' ? "Contínua" : (cfg.lang === 'en' ? "Continuous" : (cfg.lang === 'fr' ? "Continu" : "0"));
+  
+  render();
+}
+
+function rankName(pos) { if (pos === 14) return 'A'; if (pos < 1 || pos > 13) return null; return RANKS[pos - 1]; }
+function posDoRank(rank) { return RANKS.indexOf(rank) + 1; }
+function pontosCarta(rank) { if (rank === 'A') return 15; if (rank === '2') return 10; return posDoRank(rank) <= 7 ? 5 : 10; }
+function criarBaralho() {
+  const cards = []; let id = 0;
+  for (let d = 0; d < 2; d++) { for (const s of SUITS) { for (const r of RANKS) { cards.push({ id: id++, rank: r, suit: s, deck: d }); } } }
+  return cards;
+}
+function embaralhar(arr) { for (let i = arr.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [arr[i], arr[j]] = [arr[j], arr[i]]; } return arr; }
+
+function verificarTrinca(cards) {
+  const n = cards.length;
+  if (n < 3) return { valida: false, motivo: 'Mínimo de 3 cartas' };
+  const naoDois = cards.filter(c => c.rank !== '2');
+  if (naoDois.length === 0) return { valida: true, isTrincaDeMele: true, rank: '2', wilds: n, ordenadas: cards.map(c => ({ card: c, wild: false })) };
+  if (naoDois.length < 2) return { valida: false, motivo: 'Precisa de ao menos 2 cartas naturais' };
+  const rank = naoDois[0].rank;
+  if (!naoDois.every(c => c.rank === rank)) return { valida: false, motivo: 'Valores diferentes' };
+  const suitCounts = {};
+  for (const c of naoDois) { suitCounts[c.suit] = (suitCounts[c.suit] || 0) + 1; if (suitCounts[c.suit] > 2) return { valida: false, motivo: 'Máximo de 2 cartas do mesmo naipe' }; }
+  const wilds = cards.filter(c => c.rank === '2').length;
+  if (wilds > 0 && cfg.meleBloqueado) return { valida: false, motivo: 'Melês bloqueados' };
+  if (wilds > 2) return { valida: false, motivo: 'Máximo de 2 melês por trinca' };
+  return { valida: true, rank, wilds, ordenadas: cards.map(c => ({ card: c, wild: c.rank === '2' })) };
+}
+
+function verificarSequencia(cards) {
+  const n = cards.length;
+  if (n < 3) return { valida: false, motivo: 'Mínimo de 3 cartas' };
+  const naoDois = cards.filter(c => c.rank !== '2');
+  if (naoDois.length === 0) return { valida: false, motivo: 'Sequência não pode ser só de melês' };
+  if (naoDois.length < 2) return { valida: false, motivo: 'Precisa de ao menos 2 cartas naturais' };
+  const naipe = naoDois[0].suit;
+  if (!naoDois.every(c => c.suit === naipe)) return { valida: false, motivo: 'Naipes diferentes' };
+  const wildsDisponiveis = cards.filter(c => c.rank === '2').length;
+  if (wildsDisponiveis > 0 && cfg.meleBloqueado) return { valida: false, motivo: 'Melês bloqueados' };
+  const totalDois = cards.filter(c => c.rank === '2').length;
+  const doisNaturaisDoNaipe = cards.filter(c => c.rank === '2' && c.suit === naipe).length;
+
+  for (let start = 1; start + n - 1 <= 14; start++) {
+    const pool = cards.slice(); const ordenadas = []; let ok = true; let doisUsados = 0; let doisNaturaisUsados = 0;
+    for (let i = 0; i < n; i++) {
+      const pos = start + i; const rn = rankName(pos);
+      let idx = pool.findIndex(c => c.rank === rn && c.suit === naipe);
+      if (idx >= 0) { const c = pool.splice(idx, 1)[0]; ordenadas.push({ card: c, wild: false }); if (c.rank === '2') doisNaturaisUsados++; }
+      else {
+        idx = pool.findIndex(c => c.rank === '2');
+        if (idx >= 0) {
+          const c = pool[idx];
+          if (c.suit === naipe && totalDois >= 2) { ok = false; break; }
+          pool.splice(idx, 1); ordenadas.push({ card: c, wild: true }); doisUsados++;
+        } else { ok = false; break; }
+      }
+    }
+    if (ok) return { valida: true, naipe, startRank: start, ordenadas };
+  }
+  return { valida: false, motivo: 'Não forma sequência contígua (ou melês em posições inválidas)' };
+}
+
+function calcularPontuacaoJogada(meld) {
+  const n = meld.cards.length;
+  const isTrincaDeMele = meld.cards.every(c => c.card.rank === '2');
+  const temWild = meld.cards.some(c => c.wild);
+  if (meld.type === 'trinca') {
+    if (isTrincaDeMele) return n >= 7 ? 200 : 0;
+    if (temWild) return 0;
+    return n >= 7 ? 200 : 0;
+  }
+  if (n === 14 && meld.startRank === 1) return temWild ? 100 : 500;
+  if (n >= 7) return temWild ? 100 : 200;
+  return 0;
+}
+
+function ehCanastra(meld) { return calcularPontuacaoJogada(meld) >= 100; }
+
+let cfg = {
+  nome1: 'Você', nome2: 'CPU', meleBloqueado: false, doisMelesTrinca: true,
+  nivelCPU: 3, serie: 1, verCarta: false, logVisivel: false, toastAtivo: false,
+  orgBotoesVisiveis: false, handWidth: 52, handCols: 8, lixoHeight: 46, lixoCols: 0,
+  mesaWidth: 24, lang: 'pt', cheatMode: false, modoJogo: 'PvAI',
+  inspecao: false, unlimitedDraw: false, unlimitedDiscard: false,
+  isAdmin: false, showFloatingTools: false, isAdminVisible: false
+};
+
+function carregarCfg() {
+  try {
+    const raw = localStorage.getItem('biriba_cfg_v3_9');
+    if (raw) Object.assign(cfg, JSON.parse(raw));
+    const rawLangs = localStorage.getItem('biriba_custom_langs');
+    if (rawLangs) {
+      customLangs = JSON.parse(rawLangs);
+      Object.keys(customLangs).forEach(k => { TRANSLATIONS[k] = customLangs[k].translations; });
+    }
+  } catch (e) {}
+}
+function salvarCfg() {
+  try { localStorage.setItem('biriba_cfg_v3_9', JSON.stringify(cfg)); localStorage.setItem('biriba_custom_langs', JSON.stringify(customLangs)); } catch (e) {}
+}
+
+let G = null; let meldIdCounter = 0; let serieVitorias = [0, 0]; let isProcessingAI = false; let acaoViradaMeldId = null; let secretClicks = 0; let secretTimer = null;
+
+function salvarEstado() { if (!G) return; const save = { ...G, selecionadas: [...G.selecionadas] }; try { localStorage.setItem('biriba_save_v3_9', JSON.stringify(save)); } catch (e) {} }
+function carregarEstadoSalvo() {
+  try {
+    const raw = localStorage.getItem('biriba_save_v3_9');
+    if (raw) { const loaded = JSON.parse(raw); if (loaded && loaded.jogadores) { loaded.selecionadas = new Set(loaded.selecionadas || []); G = loaded; return true; } }
+  } catch (e) {}
+  return false;
+}
+
+function novoJogo() {
+  isProcessingAI = false;
+  const deck = embaralhar(criarBaralho());
+  G = {
+    jogadores: [
+      { nome: cfg.nome1, mao: [], melds: [], mortosPegos: 0, isCPU: cfg.modoJogo === 'AIvAI' ? true : false },
+      { nome: cfg.nome2, mao: [], melds: [], mortosPegos: 0, isCPU: true }
+    ],
+    monte: [], lixo: [], mortos: [[], []], mortosDono: [null, null], mortosNoJogo: 2,
+    turno: Math.random() < 0.5 ? 0 : 1, fase: 'draw', finalizado: false, selecionadas: new Set(), logs: []
+  };
+  meldIdCounter = 0;
+  for (let i = 0; i < 11; i++) { G.jogadores[0].mao.push(deck.pop()); G.jogadores[1].mao.push(deck.pop()); }
+  for (let i = 0; i < 11; i++) G.mortos[0].push(deck.pop());
+  for (let i = 0; i < 11; i++) G.mortos[1].push(deck.pop());
+  G.monte = deck;
+  addLog(t('log_novo_jogo', G.jogadores[G.turno].nome));
+  render();
+  if (cfg.modoJogo === 'AIvAI' || G.turno === 1) setTimeout(cpuStep, 900);
+}
+
+function addLog(msg) { G.logs.push(msg); if (G.logs.length > 100) G.logs.shift(); renderLog(); if (cfg.toastAtivo) showToast(msg); salvarEstado(); }
+function renderLog() {
+  const el = document.getElementById('log'); el.classList.toggle('oculto', !cfg.logVisivel); el.innerHTML = '';
+  G.logs.slice(-12).forEach(m => { const d = document.createElement('div'); d.textContent = m; el.appendChild(d); });
+  el.scrollTop = el.scrollHeight;
+}
+function showToast(msg) {
+  const container = document.getElementById('toast-container'); const t = document.createElement('div');
+  t.className = 'toast'; t.textContent = msg; container.appendChild(t);
+  setTimeout(() => { t.style.animation = 'fadeOut 0.3s ease-in forwards'; setTimeout(() => t.remove(), 300); }, 3000);
+}
+
+function formatarMao(mao) { return mao.map(c => `${c.rank}${c.suit}`).join(' '); }
+function abrirHistorico() {
+  const el = document.getElementById('hist-conteudo');
+  if (cfg.cheatMode) {
+    let html = `<div style="color:#ffd54f; font-weight:bold; border-bottom:1px solid #fff;">=== MODO CHEAT ATIVADO ===</div>`;
+    html += `<div>CPU Mão (${G.jogadores[1].mao.length}): ${formatarMao(G.jogadores[1].mao)}</div>`;
+    html += `<div>Monte (${G.monte.length}): ${formatarMao(G.monte)}</div>`;
+    html += `<div>1º Morto: ${formatarMao(G.mortos[0])}</div><div>2º Morto: ${formatarMao(G.mortos[1])}</div>`;
+    html += `<div style="color:#ffd54f; font-weight:bold; margin-top:10px; border-bottom:1px solid #fff;">=== LOG ===</div>`;
+    G.logs.forEach(m => { html += `<div>${m}</div>`; });
+    el.innerHTML = html;
+  } else { el.innerHTML = G.logs.map(m => `<div>${m}</div>`).join(''); }
+  document.getElementById('modal-hist').classList.add('aberto');
+}
+
+function abrirModalLixo() {
+  const el = document.getElementById('modal-lixo-conteudo'); el.innerHTML = '';
+  if (G.lixo.length === 0) el.innerHTML = `<p style="color:#8fd6a3;text-align:center;width:100%">Vazio</p>`;
+  else G.lixo.forEach(card => { el.appendChild(cardEl(card, { wild: card.rank === '2', static: true })); });
+  document.getElementById('modal-lixo').classList.add('aberto');
+}
+
+function abrirModalMesa() {
+  const el = document.getElementById('modal-mesa-conteudo'); el.innerHTML = '';
+  renderMeldsCompleto(el, false);
+  if (el.children.length === 0) el.innerHTML = `<p style="color:#8fd6a3;text-align:center;width:100%">Nenhuma jogada</p>`;
+  document.getElementById('modal-mesa').classList.add('aberto');
+}
+
+window.abrirInspecao = function(tipo) {
+  if (!cfg.inspecao) return;
+  let cards = []; let titulo = "";
+  if (tipo === 'monte') { cards = G.monte; titulo = "Inspeção: Monte (" + cards.length + ")"; } 
+  else if (tipo === 'm0') { cards = G.mortos[0]; titulo = "Inspeção: 1º Morto (" + cards.length + ")"; } 
+  else if (tipo === 'm1') { cards = G.mortos[1]; titulo = "Inspeção: 2º Morto (" + cards.length + ")"; } 
+  else if (tipo === 'cpu') { cards = G.jogadores[1].mao; titulo = "Inspeção: Mão da CPU (" + cards.length + ")"; }
+  document.getElementById('inspecao-titulo').textContent = titulo;
+  const el = document.getElementById('inspecao-conteudo'); el.innerHTML = '';
+  if (cards.length === 0) el.innerHTML = '<p style="color:#8fd6a3;text-align:center;width:100%">Vazio</p>';
+  else {
+    let paraMostrar = [...cards]; if (tipo === 'monte' || tipo === 'm0' || tipo === 'm1') paraMostrar.reverse();
+    paraMostrar.forEach(card => { el.appendChild(cardEl(card, { wild: card.rank === '2', static: true })); });
+  }
+  document.getElementById('modal-inspecao').classList.add('aberto');
+}
+
+window.abrirModalAjuda = function(tipo) {
+  const el = document.getElementById('ajuda-conteudo'); const titulo = document.getElementById('ajuda-titulo');
+  if (tipo === 'regras') {
+    titulo.textContent = "Regras Oficiais do Biriba";
+    el.innerHTML = `<h3>1. Material</h3><ul><li>2 baralhos de 52 cartas</li><li>11 cartas na mão</li><li>2 mortos de 11</li></ul>
+      <h3>2. Objetivo</h3><p>Bater: mão vazia, 1 canastra na mesa. Mortos pegos por qualquer jogador.</p>
+      <h3>3. Turno</h3><p>Comprar do monte ou lixo. Baixar/encaixar. Descartar.</p>
+      <h3>4. Melê</h3><p>2 é curinga. Suja=100, Limpa=200. Dois melês só se um for o 2 natural.</p>
+      <h3>5. Jogadas</h3><p>Mín 3 cartas. 7+ = Canastra. Trinca com melê = 0.</p>
+      <h3>6. Exceções de Melê</h3><p>Máx 2 melês por jogada. Exceção: trinca só de 2s pode ter 3+.</p>
+      <h3>7. Virada</h3><p>Pode baixar virada. Revelação obrigatória ao bater/pegar morto.</p>
+      <h3>8. Mortos</h3><p>1º com/sem descarte. 2º só sem descarte.</p>
+      <h3>9. Bater</h3><p>Requisitos: 2 mortos pegos + canastra + mão vazia.</p>
+      <h3>10. Contagem</h3><p>Fase 1: Canastras + Bônus 100. Fase 2: Paga mão. Fase 3: Quem tem mais mesa vence.</p>
+      <h3>11. Desempate</h3><p>Carta maior da mão vence.</p>`;
+  } else if (tipo === 'manual') {
+    titulo.textContent = "Manual de Instruções";
+    el.innerHTML = `<h3>Visão Geral</h3><ul><li><b>Topo:</b> CPU, Monte, Mortos</li><li><b>Mesa:</b> Jogadas</li><li><b>Lixo:</b> Descartadas</li><li><b>Mão:</b> Suas cartas</li></ul>
+      <h3>Ações</h3><ul><li><b>Comprar:</b> Puxa carta</li><li><b>Pegar Lixo:</b> Pega tudo</li><li><b>Baixar:</b> 3+ cartas</li><li><b>Encaixar:</b> 1 carta na mesa</li><li><b>Descartar:</b> Encerra turno</li></ul>
+      <h3>Drag & Drop</h3><p>Arraste as cartas para organizar.</p>
+      <h3>Jogada Virada</h3><p>Clique para virar ou voltar.</p>`;
+  }
+  document.getElementById('modal-ajuda').classList.add('aberto');
+}
+
+function abrirModalIdioma() { renderListaIdiomas(); document.getElementById('modal-idioma').classList.add('aberto'); }
+function fecharModalIdioma() { document.getElementById('modal-idioma').classList.remove('aberto'); }
+
+function renderListaIdiomas() {
+  const div = document.getElementById('lista-idiomas'); div.innerHTML = '';
+  const idiomas = { 'pt': 'Português', 'en': 'English', ...Object.keys(customLangs).reduce((acc, k) => { acc[k] = customLangs[k].name; return acc; }, {}) };
+  Object.keys(idiomas).forEach(id => {
+    const isSel = cfg.lang === id;
+    const btn = document.createElement('button');
+    btn.className = 'cfg-menu-btn';
+    btn.style.borderColor = isSel ? '#ffd54f' : '#2e7d32';
+    btn.style.color = isSel ? '#ffd54f' : '#fff';
+    btn.innerHTML = `<span>${idiomas[id]}</span> ${isSel ? '✓' : ''}`;
+    btn.onclick = () => { cfg.lang = id; salvarCfg(); fecharModalIdioma(); traduzirInterface(); };
+    div.appendChild(btn);
+  });
+}
+
+window.carregarIdiomasServidor = async function() {
+  try {
+    const res = await fetch('idiomas/index.json');
+    if (!res.ok) throw new Error("index.json não encontrado");
+    const files = await res.json();
+    let count = 0;
+    for (const file of files) {
+      try {
+        const resp = await fetch('idiomas/' + file);
+        if (!resp.ok) continue;
+        const data = await resp.json();
+        if (data.id && data.name && data.translations) {
+          customLangs[data.id] = data; TRANSLATIONS[data.id] = data.translations; count++;
+        }
+      } catch (e) { console.warn("Falha ao carregar " + file); }
+    }
+    if (count > 0) { salvarCfg(); renderListaIdiomas(); traduzirInterface(); showToast(`${count} idioma(s) importado(s)!`); }
+    else showToast("Nenhum idioma válido na pasta.");
+  } catch (e) { showToast("Pasta 'idiomas/index.json' não encontrada."); }
+}
+
+window.importarIdiomaManual = function(event) {
+  const files = event.target.files; if (!files || files.length === 0) return;
+  let importados = 0;
+  const processFile = (file) => {
+    return new Promise((resolve) => {
+      const reader = new FileReader();
+      reader.onload = function(e) {
+        try {
+          const data = JSON.parse(e.target.result);
+          if (!data.id || !data.name || !data.translations) throw new Error("Inválido.");
+          customLangs[data.id] = data; TRANSLATIONS[data.id] = data.translations; importados++;
+        } catch (err) { console.warn(`Erro ${file.name}: ${err.message}`); }
+        resolve();
+      };
+      reader.readAsText(file);
+    });
+  };
+  const promises = Array.from(files).map(processFile);
+  Promise.all(promises).then(() => {
+    salvarCfg(); renderListaIdiomas();
+    if (importados > 0) { showToast(`${importados} idioma(s) importado(s)!`); traduzirInterface(); }
+    else showToast(`Nenhum arquivo válido.`);
+    event.target.value = '';
+  });
+}
+
+window.baixarModeloIdioma = function() {
+  const modelo = { id: "es", name: "Español", translations: TRANSLATIONS['pt'] };
+  const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(modelo, null, 2));
+  const downloadAnchorNode = document.createElement('a');
+  downloadAnchorNode.setAttribute("href", dataStr); downloadAnchorNode.setAttribute("download", "modelo_idioma.json");
+  document.body.appendChild(downloadAnchorNode); downloadAnchorNode.click(); downloadAnchorNode.remove();
+  showToast("Modelo baixado.");
+}
+
+window.abrirInstrucoesIA = function() {
+  const texto = `Você é um tradutor especialista. Vou te enviar um arquivo JSON chamado "modelo_idioma.json" que contém a estrutura de textos de um jogo de cartas chamado Biriba.
+Sua tarefa é traduzir todos os valores (as strings) do objeto "translations" para o novo idioma.
+Regras:
+1. Mantenha as chaves exatamente como estão. Traduza apenas os valores.
+2. Mude o campo "id" para a sigla (ex: "fr" para francês).
+3. Mude o campo "name" para o nome ("Français").
+4. Mantenha {0}, {1} e {2} na frase.
+5. Mantenha emojis (⏳, 🏆, etc).
+6. Mantenha "Melê" ou "Joker".
+7. Mantenha "Canastra".
+Retorne o JSON completo traduzido.`;
+  document.getElementById('texto-instrucoes').value = texto;
+  document.getElementById('modal-instrucoes-ia').classList.add('aberto');
+}
+
+window.copiarInstrucoes = function() { const t = document.getElementById('texto-instrucoes'); t.select(); document.execCommand('copy'); showToast("Copiado!"); }
+
+function showConfirm(titulo, msg, onOk) {
+  document.getElementById('confirm-titulo').textContent = titulo; document.getElementById('confirm-msg').textContent = msg;
+  document.getElementById('modal-confirm').classList.add('aberto');
+  const btnOk = document.getElementById('confirm-btn-ok'); const btnCancel = document.getElementById('confirm-btn-cancel');
+  const close = () => { document.getElementById('modal-confirm').classList.remove('aberto'); btnOk.onclick = null; btnCancel.onclick = null; };
+  btnOk.onclick = () => { close(); onOk(); }; btnCancel.onclick = close;
+}
+
+window.verificarSenha = function() {
+  const input = document.getElementById('senha-input');
+  if (input.value === '123') {
+    document.getElementById('modal-senha').classList.remove('aberto'); input.value = ''; input.blur();
+    cfg.isAdmin = true;
+    document.getElementById('cfg-menu-principal').style.display = 'none';
+    document.querySelectorAll('.cfg-secao').forEach(el => el.style.display = 'none');
+    document.getElementById('cfg-sec-admin').style.display = 'block';
+    document.getElementById('cfg-titulo').textContent = 'Admin'; document.getElementById('cfg-voltar').style.display = 'inline-block';
+    document.getElementById('cfg-inspecao').checked = cfg.inspecao; document.getElementById('cfg-unlimitedDraw').checked = cfg.unlimitedDraw;
+    document.getElementById('cfg-unlimitedDiscard').checked = cfg.unlimitedDiscard; document.getElementById('cfg-cheatMode').checked = cfg.cheatMode;
+    updateToggleToolsBtn(); render();
+  } else { showToast('Senha incorreta!'); input.value = ''; input.focus(); }
+}
+
+window.ocultarAdmin = function() {
+  cfg.isAdminVisible = false; cfg.isAdmin = false; salvarCfg(); fecharConfig();
+  showToast("Menu Admin oculto."); document.getElementById('btn-menu-admin').style.display = 'none';
+}
+
+window.restaurarPadraoAdmin = function() {
+  showConfirm("Restaurar", "Desativar ferramentas de teste?", () => {
+    cfg.inspecao = false; cfg.unlimitedDraw = false; cfg.unlimitedDiscard = false; cfg.cheatMode = false; cfg.showFloatingTools = false;
+    document.getElementById('cfg-inspecao').checked = false; document.getElementById('cfg-unlimitedDraw').checked = false;
+    document.getElementById('cfg-unlimitedDiscard').checked = false; document.getElementById('cfg-cheatMode').checked = false;
+    salvarCfg(); updateToggleToolsBtn(); render(); showToast("Ferramentas desativadas.");
+  });
+}
+
+window.toggleTest = function(key) { cfg[key] = !cfg[key]; salvarCfg(); renderTestToggles(); render(); }
+window.toggleFloatingTools = function() { cfg.showFloatingTools = !cfg.showFloatingTools; salvarCfg(); updateToggleToolsBtn(); renderTestToggles(); }
+function updateToggleToolsBtn() { const btn = document.getElementById('btn-toggle-tools'); if (btn) btn.textContent = cfg.showFloatingTools ? 'Ocultar Ícones de Teste' : 'Mostrar Ícones de Teste'; }
+function renderTestToggles() {
+  const container = document.getElementById('floating-tools');
+  if (!cfg.isAdmin || !cfg.showFloatingTools) { container.style.display = 'none'; return; }
+  container.style.display = 'flex';
+  document.getElementById('btn-tool-inspect').classList.toggle('active', cfg.inspecao);
+  document.getElementById('btn-tool-draw').classList.toggle('active', cfg.unlimitedDraw);
+  document.getElementById('btn-tool-discard').classList.toggle('active', cfg.unlimitedDiscard);
+  document.getElementById('btn-tool-cheat').classList.toggle('active', cfg.cheatMode);
+}
+
+function reporMonte() {
+  if (G.monte.length > 0) return true;
+  for (let i = 0; i < 2; i++) {
+    if (G.mortosDono[i] === null && G.mortos[i].length > 0) {
+      G.monte = embaralhar(G.mortos[i]); G.mortos[i] = []; G.mortosDono[i] = -1; G.mortosNoJogo--;
+      addLog(t('log_monte_vazio', i + 1, G.monte.length)); return true;
+    }
+  }
+  return false;
+}
+
+function comprarDoMonte() {
+  if (G.fase !== 'draw' || G.finalizado) return;
+  if (!reporMonte()) { fimDeJogoPorMonte(); return; }
+  const c = G.monte.pop(); G.jogadores[G.turno].mao.push(c);
+  if (G.turno === 0 && cfg.unlimitedDraw) {} else { G.fase = 'play'; }
+  if (G.turno === 0) addLog(cfg.verCarta ? t('log_puxou_voce', `${c.rank}${c.suit}`) : t('log_puxou_voce_oc'));
+  else addLog(t('log_puxou_adv'));
+}
+
+function pegarLixo() {
+  if (G.fase !== 'draw' || G.finalizado) return;
+  if (G.lixo.length === 0) { addLog(cfg.lang === 'pt' ? 'Lixo vazio.' : 'Empty.'); return; }
+  const j = G.jogadores[G.turno]; const qtd = G.lixo.length;
+  j.mao.push(...G.lixo); G.lixo = []; G.fase = 'play';
+  if (G.turno === 0) addLog(t('log_lixo_voce', qtd)); else addLog(t('log_lixo_adv'));
+}
+
+function verificarMorto(idx, viaDescarte) {
+  const j = G.jogadores[idx];
+  if (j.mao.length > 0) return false;
+  if (j.mortosPegos >= G.mortosNoJogo) return false;
+  if (viaDescarte && j.mortosPegos >= 1) return false;
+  for (let i = 0; i < 2; i++) {
+    if (G.mortosDono[i] !== null) continue;
+    if (G.mortos[i].length === 0) continue;
+    j.mao.push(...G.mortos[i]); G.mortos[i] = []; G.mortosDono[i] = idx; j.mortosPegos++;
+    addLog(t('log_morto', j.nome, i + 1, j.mao.length)); return true;
+  }
+  return false;
+}
+
+function bloqueioMaoVazia(novaMao) {
+  if (!cfg.meleBloqueado) return false; if (novaMao.length === 0) return false; return novaMao.every(c => c.rank === '2');
+}
+
+function baixarJogada(idx, cards, tipo, virada = false) {
+  const j = G.jogadores[idx];
+  let res = (tipo === 'trinca') ? verificarTrinca(cards) : verificarSequencia(cards);
+  if (!res.valida) { if (idx === 1) addLog(`Erro CPU: ${res.motivo}`); else addLog(`Erro: ${res.motivo}`); return false; }
+  const ids = new Set(cards.map(c => c.id)); const novaMao = j.mao.filter(c => !ids.has(c.id));
+  if (bloqueioMaoVazia(novaMao)) { addLog('Bloqueado: deixaria só melês.'); return false; }
+  j.mao = novaMao;
+  const meld = { id: ++meldIdCounter, type: tipo, cards: res.ordenadas, rank: res.rank || null, suit: res.naipe || null, startRank: res.startRank || 0, owner: idx, virada: virada };
+  j.melds.push(meld);
+  const desc = tipo === 'trinca' ? `trinca de ${res.rank}` : `sequência de ${res.naipe}`;
+  const suf = virada ? ' (virada)' : '';
+  addLog(t('log_baixou', j.nome, desc + suf, cards.length));
+  verificarMorto(idx, false); return true;
+}
+
+function tentarEncaixar(meld, card) {
+  if (meld.virada) return { ok: false, motivo: 'Virada. Revele antes.' };
+  if (meld.type === 'trinca') {
+    if (card.rank === '2') {
+      if (cfg.meleBloqueado) return { ok: false, motivo: 'Melês bloqueados' };
+      const wilds = meld.cards.filter(c => c.wild).length;
+      if (wilds >= 2) return { ok: false, motivo: 'Máx 2 melês' };
+      meld.cards.push({ card, wild: true }); return { ok: true };
+    }
+    if (card.rank !== meld.rank) return { ok: false, motivo: 'Valor incorreto' };
+    const mesmoNaipe = meld.cards.filter(c => !c.wild && c.card.suit === card.suit).length;
+    if (mesmoNaipe >= 2) return { ok: false, motivo: 'Já há 2 deste naipe' };
+    meld.cards.push({ card, wild: false }); return { ok: true };
+  }
+  const n = meld.cards.length;
+  for (let i = 0; i < n; i++) {
+    const pos = meld.startRank + i;
+    if (meld.cards[i].wild && rankName(pos) === card.rank && card.suit === meld.suit) {
+      const oldWild = meld.cards[i].card; meld.cards[i] = { card, wild: false };
+      if (meld.startRank + meld.cards.length <= 14) { meld.cards.push({ card: oldWild, wild: true }); return { ok: true }; }
+      if (meld.startRank - 1 >= 1) { meld.cards.unshift({ card: oldWild, wild: true }); meld.startRank--; return { ok: true }; }
+      meld.cards[i] = { card: oldWild, wild: true }; return { ok: false, motivo: 'Melê preso' };
+    }
+  }
+  const posFim = meld.startRank + n;
+  if (posFim <= 14) {
+    const rn = rankName(posFim);
+    if (card.rank === rn && card.suit === meld.suit) { meld.cards.push({ card, wild: false }); return { ok: true }; }
+    if (card.rank === '2' && !cfg.meleBloqueado) {
+      const doisNaSeq = meld.cards.filter(c => c.card.rank === '2');
+      if (doisNaSeq.length >= 2) return { ok: false, motivo: 'Máx 2 melês' };
+      meld.cards.push({ card, wild: true }); return { ok: true };
+    }
+  }
+  const posIni = meld.startRank - 1;
+  if (posIni >= 1) {
+    const rn = rankName(posIni);
+    if (card.rank === rn && card.suit === meld.suit) { meld.cards.unshift({ card, wild: false }); meld.startRank--; return { ok: true }; }
+  }
+  return { ok: false, motivo: 'Não encaixa' };
+}
+
+function encaixar(idx, meldId, cardId) {
+  const j = G.jogadores[idx]; const meld = j.melds.find(m => m.id === meldId);
+  if (!meld) return false; const card = j.mao.find(c => c.id === cardId); if (!card) return false;
+  const novaMao = j.mao.filter(c => c.id !== cardId);
+  if (bloqueioMaoVazia(novaMao)) { addLog('Bloqueado: deixaria só melês.'); return false; }
+  const res = tentarEncaixar(meld, card);
+  if (!res.ok) { addLog(`Erro: ${res.motivo}`); return false; }
+  j.mao = novaMao; addLog(t('log_encaixou', j.nome)); verificarMorto(idx, false); return true;
+}
+
+function descartar(idx, cardId) {
+  if (G.finalizado) return false; const j = G.jogadores[idx]; const card = j.mao.find(c => c.id === cardId); if (!card) return false;
+  if (card.rank === '2' && cfg.meleBloqueado && !j.mao.every(c => c.rank === '2')) { addLog('Não pode descartar melê.'); return false; }
+  j.mao = j.mao.filter(c => c.id !== cardId); G.lixo.push(card);
+  if (idx === 0) addLog(cfg.verCarta ? t('log_descarte_voce', `${card.rank}${card.suit}`) : t('log_descarte_voce_oc'));
+  else addLog(t('log_descarte_adv'));
+  verificarMorto(idx, true);
+  if (idx === 0 && cfg.unlimitedDiscard) render(); else finalizarTurno();
+  return true;
+}
+
+function passar() { const j = G.jogadores[G.turno]; if (j.mao.length > 0) return; addLog(`${j.nome} passou.`); finalizarTurno(); }
+
+function finalizarTurno() {
+  if (G.finalizado) return; G.turno = 1 - G.turno; G.fase = 'draw'; G.selecionadas.clear(); render();
+  if (cfg.modoJogo === 'AIvAI' || G.turno === 1) setTimeout(cpuStep, 750);
+}
+
+function podeBater(idx) {
+  const j = G.jogadores[idx]; const todosMortosPegos = (G.mortosDono[0] !== null && G.mortosDono[1] !== null);
+  return todosMortosPegos && j.mao.length === 0 && j.melds.some(m => ehCanastra(m));
+}
+
+function bater(idx) {
+  if (!podeBater(idx)) { addLog('Ainda não pode bater.'); return false; }
+  G.finalizado = true; addLog(t('log_bateu', G.jogadores[idx].nome)); render(); mostrarFimDeJogo(idx); return true;
+}
+
+function fimDeJogoPorMonte() {
+  G.finalizado = true; addLog('Fim de jogo por monte.');
+  const p0 = G.jogadores[0].mao.reduce((s, c) => s + pontosCarta(c.rank), 0);
+  const p1 = G.jogadores[1].mao.reduce((s, c) => s + pontosCarta(c.rank), 0);
+  mostrarFimDeJogo(p0 <= p1 ? 0 : 1, true);
+}
+
+window.organizarMao = function(tipo) {
+  if (G.finalizado || G.turno !== 0 || cfg.modoJogo === 'AIvAI') return;
+  const mao = G.jogadores[0].mao;
+  if (tipo === 'naipe') {
+    mao.sort((a, b) => { if (ORDEM_NAIPE[a.suit] !== ORDEM_NAIPE[b.suit]) return ORDEM_NAIPE[a.suit] - ORDEM_NAIPE[b.suit]; return ORDEM_NUM[a.rank] - ORDEM_NUM[b.rank]; });
+  } else if (tipo === 'trinca') {
+    mao.sort((a, b) => { if (ORDEM_NUM[a.rank] !== ORDEM_NUM[b.rank]) return ORDEM_NUM[a.rank] - ORDEM_NUM[b.rank]; return ORDEM_NAIPE[a.suit] - ORDEM_NAIPE[b.suit]; });
+  } else if (tipo === 'sequencia') {
+    const porNaipe = {}; mao.forEach(c => { if (!porNaipe[c.suit]) porNaipe[c.suit] = []; porNaipe[c.suit].push(c); });
+    const seq3 = []; const seq2 = []; const soltas = [];
+    for (const s of Object.keys(porNaipe)) {
+      const arr = porNaipe[s].sort((a, b) => ORDEM_NUM[a.rank] - ORDEM_NUM[b.rank]); let run = [arr[0]];
+      for (let i = 1; i < arr.length; i++) {
+        if (ORDEM_NUM[arr[i].rank] === ORDEM_NUM[arr[i-1].rank] + 1) { run.push(arr[i]); }
+        else { if (run.length >= 3) seq3.push([...run]); else if (run.length === 2) seq2.push([...run]); else soltas.push(...run); run = [arr[i]]; }
+      }
+      if (run.length >= 3) seq3.push([...run]); else if (run.length === 2) seq2.push([...run]); else soltas.push(...run);
+    }
+    const cmpSeq = (a, b) => { if (a.length !== b.length) return b.length - a.length; return ORDEM_NAIPE[a[0].suit] - ORDEM_NAIPE[b[0].suit]; };
+    seq3.sort(cmpSeq); seq2.sort(cmpSeq);
+    soltas.sort((a, b) => { if (ORDEM_NUM[a.rank] !== ORDEM_NUM[b.rank]) return ORDEM_NUM[a.rank] - ORDEM_NUM[b.rank]; return ORDEM_NAIPE[a.suit] - ORDEM_NAIPE[b.suit]; });
+    const novaMao = []; seq3.forEach(run => novaMao.push(...run)); seq2.forEach(run => novaMao.push(...run)); novaMao.push(...soltas);
+    G.jogadores[0].mao = novaMao;
+  }
+  G.selecionadas.clear(); render();
+};
+
+let dragState = null;
+function configurarDrag(el, cardId) {
+  el.addEventListener('pointerdown', e => {
+    if (G.finalizado || G.turno !== 0 || cfg.modoJogo === 'AIvAI') return;
+    el.setPointerCapture(e.pointerId);
+    dragState = { id: cardId, el: el, startX: e.clientX, startY: e.clientY, isDragging: false };
+  });
+  el.addEventListener('pointermove', e => {
+    if (!dragState || dragState.id !== cardId) return;
+    const dx = Math.abs(e.clientX - dragState.startX); const dy = Math.abs(e.clientY - dragState.startY);
+    if (!dragState.isDragging && (dx > 8 || dy > 8)) { dragState.isDragging = true; el.classList.add('arrastando'); }
+    if (dragState.isDragging) { el.style.transform = `translate(${e.clientX - dragState.startX}px, ${e.clientY - dragState.startY}px) scale(1.1)`; }
+  });
+  const finalizarDrag = (e) => {
+    if (!dragState || dragState.id !== cardId) return;
+    el.style.transform = ''; el.classList.remove('arrastando');
+    if (dragState.isDragging) {
+      const cardsInHand = Array.from(document.querySelectorAll('#mao-jogador > .card'));
+      let closestCard = null; let minDistance = Infinity;
+      const dropX = e.clientX; const dropY = e.clientY;
+      cardsInHand.forEach(c => {
+        if (c === el) return;
+        const rect = c.getBoundingClientRect(); const cardX = rect.left + rect.width / 2; const cardY = rect.top + rect.height / 2;
+        const dist = Math.hypot(dropX - cardX, dropY - cardY);
+        if (dist < minDistance) { minDistance = dist; closestCard = c; }
+      });
+      if (closestCard && minDistance < 100) {
+        const targetCardId = parseInt(closestCard.dataset.id); const mao = G.jogadores[0].mao;
+        const fromIdx = mao.findIndex(c => c.id === cardId); const toIdx = mao.findIndex(c => c.id === targetCardId);
+        if (fromIdx !== -1 && toIdx !== -1) { const [moved] = mao.splice(fromIdx, 1); mao.splice(toIdx, 0, moved); render(); }
+      }
+    } else {
+      if (G.selecionadas.has(cardId)) G.selecionadas.delete(cardId); else G.selecionadas.add(cardId);
+      render();
+    }
+    dragState = null;
+  };
+  el.addEventListener('pointerup', finalizarDrag); el.addEventListener('pointercancel', finalizarDrag);
+}
+
+function encontrarTrinca(idx) {
+  const mao = G.jogadores[idx].mao; const grupos = {};
+  for (const c of mao) { if (c.rank === '2') continue; (grupos[c.rank] = grupos[c.rank] || []).push(c); }
+  for (const r in grupos) {
+    if (grupos[r].length >= 3) {
+      const cartasValidas = []; const suits = {};
+      for (const c of grupos[r]) { suits[c.suit] = (suits[c.suit] || 0) + 1; if (suits[c.suit] <= 2) cartasValidas.push(c); }
+      if (cartasValidas.length >= 3) { const sel = cartasValidas.slice(0, 4); const resto = mao.filter(c => !sel.includes(c)); if (!bloqueioMaoVazia(resto)) return sel; }
+    }
+  }
+  return null;
+}
+
+function encontrarSequencia(idx) {
+  const mao = G.jogadores[idx].mao;
+  for (const naipe of SUITS) {
+    const cards = mao.filter(c => c.suit === naipe && c.rank !== '2'); if (cards.length < 3) continue;
+    cards.sort((a, b) => posDoRank(a.rank) - posDoRank(b.rank)); let run = [cards[0]];
+    for (let i = 1; i < cards.length; i++) {
+      const prev = posDoRank(cards[i - 1].rank); const cur = posDoRank(cards[i].rank);
+      if (cur === prev + 1) run.push(cards[i]);
+      else { if (run.length >= 3) { const resto = mao.filter(c => !run.includes(c)); if (!bloqueioMaoVazia(resto)) return run; } run = [cards[i]]; }
+    }
+    if (run.length >= 3) { const resto = mao.filter(c => !run.includes(c)); if (!bloqueioMaoVazia(resto)) return run; }
+  }
+  return null;
+}
+
+function cpuEscolherAcao(idx) {
+  const j = G.jogadores[idx];
+  if (podeBater(idx)) return () => bater(idx);
+  const trinca = encontrarTrinca(idx); if (trinca) return () => baixarJogada(idx, trinca, 'trinca');
+  const seq = encontrarSequencia(idx); if (seq) return () => baixarJogada(idx, seq, 'sequencia');
+  for (const card of j.mao) {
+    if (card.rank === '2' && cfg.meleBloqueado) continue;
+    for (const m of j.melds) {
+      if (m.virada) continue;
+      const clone = { ...m, cards: m.cards.map(c => ({ ...c })) };
+      const res = tentarEncaixar(clone, card);
+      if (res.ok) { const novaMao = j.mao.filter(c => c.id !== card.id); if (bloqueioMaoVazia(novaMao)) continue; return () => encaixar(idx, m.id, card.id); }
+    }
+  }
+  return null;
+}
+
+function cpuDescartar(idx) {
+  const j = G.jogadores[idx]; if (j.mao.length === 0) { passar(); return; }
+  let candidatos = j.mao.filter(c => c.rank !== '2');
+  if (cfg.meleBloqueado && candidatos.length === 0) { if (!descartar(idx, j.mao[0].id)) finalizarTurno(); return; }
+  if (candidatos.length === 0) candidatos = j.mao;
+  let pior = candidatos[0]; let piorScore = Infinity;
+  for (const c of candidatos) {
+    let score = 0; score += j.mao.filter(x => x.rank === c.rank).length * 3; score += j.mao.filter(x => x.suit === c.suit).length * 1.5; score += pontosCarta(c.rank) * 0.1;
+    if (score < piorScore) { piorScore = score; pior = c; }
+  }
+  if (!descartar(idx, pior.id)) { const outro = candidatos.find(c => c.id !== pior.id) || candidatos[0]; if (!descartar(idx, outro.id)) finalizarTurno(); }
+}
+
+function cpuStep() {
+  if (!G || G.finalizado) return;
+  const idx = G.turno;
+  if (cfg.modoJogo === 'PvAI' && idx === 0) return;
+  if (isProcessingAI) return; isProcessingAI = true;
+  if (G.fase === 'draw') {
+    setTimeout(() => {
+      if (!G || G.finalizado || G.turno !== idx) { isProcessingAI = false; return; }
+      if (G.lixo.length > 0) {
+        const topo = G.lixo[G.lixo.length - 1]; const iguais = G.jogadores[idx].mao.filter(c => c.rank === topo.rank).length;
+        if (iguais >= 2) { pegarLixo(); } else { comprarDoMonte(); }
+      } else { comprarDoMonte(); }
+      render(); isProcessingAI = false;
+      if (G.fase === 'play' && !G.finalizado) setTimeout(cpuStep, 650);
+    }, 550);
+    return;
+  }
+  setTimeout(() => {
+    if (!G || G.finalizado || G.turno !== idx) { isProcessingAI = false; return; }
+    const acao = cpuEscolherAcao(idx);
+    if (acao) {
+      const sucesso = acao(); render();
+      if (sucesso === false) { isProcessingAI = false; setTimeout(() => { if (!G || G.finalizado || G.turno !== idx) return; cpuDescartar(idx); render(); }, 650); }
+      else { isProcessingAI = false; setTimeout(cpuStep, 650); }
+      return;
+    }
+    isProcessingAI = false; setTimeout(() => { if (!G || G.finalizado || G.turno !== idx) return; cpuDescartar(idx); render(); }, 450);
+  }, 500);
+}
+
+function cardEl(card, opts) {
+  opts = opts || {}; const d = document.createElement('div'); d.className = 'card';
+  if (RED_SUITS.has(card.suit)) d.classList.add('red');
+  if (opts.wild) d.classList.add('wild'); if (opts.sel) d.classList.add('sel'); if (opts.static) d.classList.add('static');
+  const r = document.createElement('span'); r.className = 'r'; r.textContent = card.rank;
+  const s = document.createElement('span'); s.className = 's'; s.textContent = card.suit;
+  d.appendChild(r); d.appendChild(s); return d;
+}
+
+function renderMaoJogador() {
+  const el = document.getElementById('mao-jogador'); el.innerHTML = ''; const j = G.jogadores[0];
+  j.mao.forEach(card => {
+    const sel = G.selecionadas.has(card.id); const d = cardEl(card, { sel, wild: card.rank === '2' });
+    d.dataset.id = card.id; if (cfg.modoJogo === 'PvAI') configurarDrag(d, card.id); else d.style.cursor = 'default';
+    el.appendChild(d);
+  });
+  if (j.mao.length === 0) { const v = document.createElement('div'); v.className = 'vazio'; v.textContent = cfg.lang === 'pt' ? 'Mão vazia' : 'Empty hand'; el.appendChild(v); }
+}
+
+function renderBarraInfo() {
+  document.getElementById('cartas-cpu').textContent = G.jogadores[1].mao.length;
+  const pm = document.getElementById('p-monte'); pm.innerHTML = ''; pm.classList.toggle('vazia', G.monte.length === 0);
+  if (G.monte.length > 0) {
+    const back = document.createElement('div'); back.className = 'card'; back.style.background = 'linear-gradient(135deg,#1e3a8a,#3b82f6)'; back.style.borderColor = '#1e40af';
+    pm.appendChild(back); const c = document.createElement('div'); c.className = 'contagem'; c.textContent = G.monte.length; pm.appendChild(c);
+  }
+  [0, 1].forEach(i => {
+    const p = document.getElementById('p-m' + i); p.innerHTML = ''; const tem = G.mortos[i].length > 0; p.classList.toggle('vazia', !tem);
+    if (tem) {
+      const back = document.createElement('div'); back.className = 'card'; back.style.background = 'linear-gradient(135deg,#4a148c,#8e24aa)'; back.style.borderColor = '#6a1b9a';
+      p.appendChild(back); const c = document.createElement('div'); c.className = 'contagem'; c.textContent = G.mortos[i].length; p.appendChild(c);
+    }
+  });
+}
+
+function renderLixo() {
+  const pl = document.getElementById('lixo-cartas'); const cont = document.getElementById('lixo-contador'); pl.innerHTML = ''; cont.textContent = G.lixo.length;
+  if (cfg.lixoCols > 0) pl.classList.add('grid'); else pl.classList.remove('grid');
+  if (G.lixo.length === 0) { const v = document.createElement('div'); v.id = 'lixo-vazio'; v.textContent = cfg.lang === 'pt' ? 'vazio' : 'empty'; pl.appendChild(v); }
+  else { G.lixo.forEach(card => { const d = cardEl(card, { wild: card.rank === '2', static: true }); pl.appendChild(d); }); }
+}
+
+function renderMeldsCompleto(container, interativo) {
+  [1, 0].forEach(idx => {
+    const j = G.jogadores[idx]; if (j.melds.length === 0) return;
+    const linha = document.createElement('div'); linha.className = 'meld-linha' + (idx === 1 ? ' oponente' : '');
+    const titulo = document.createElement('div'); titulo.className = 'meld-titulo'; titulo.textContent = j.nome; linha.appendChild(titulo);
+    const scroll = document.createElement('div'); scroll.className = 'meld-scroll';
+    j.melds.forEach(m => {
+      const d = document.createElement('div'); const isOposta = (idx === 1);
+      d.className = 'meld' + (m.virada ? ' virada' : '') + (m.virada && isOposta ? ' oculta' : ''); d.dataset.meldId = m.id;
+      m.cards.forEach(c => { const ce = cardEl(c.card, { wild: c.wild, static: true }); d.appendChild(ce); });
+      const n = m.cards.length; const pts = calcularPontuacaoJogada(m); const isLong = n >= 7 || (n === 14 && m.startRank === 1);
+      const badge = document.createElement('div'); badge.className = 'meld-pts' + (isLong && pts > 0 ? ' pos' : ''); badge.textContent = isLong ? pts : n; d.appendChild(badge);
+      if (interativo) d.addEventListener('click', () => onMeldClick(m.id, idx)); else d.style.cursor = 'default';
+      scroll.appendChild(d);
+    });
+    linha.appendChild(scroll); container.appendChild(linha);
+  });
+}
+
+function renderMelds() {
+  const el = document.getElementById('mesa-central'); const btn = document.getElementById('btn-ver-mesa'); const tools = document.getElementById('floating-tools');
+  el.innerHTML = ''; el.appendChild(tools); el.appendChild(btn); renderMeldsCompleto(el, true);
+}
+
+function renderStatus() {
+  const j0 = G.jogadores[0], j1 = G.jogadores[1];
+  document.getElementById('nome-jogador').textContent = j0.nome; document.getElementById('nome-cpu').textContent = j1.nome;
+  document.getElementById('cartas-jogador').textContent = j0.mao.length + ' ' + t('cartas'); document.getElementById('cartas-cpu').textContent = j1.mao.length;
+  const elCanastra = document.getElementById('canastra-jogador'); elCanastra.textContent = t('canastra'); elCanastra.style.display = j0.melds.some(m => ehCanastra(m)) ? '' : 'none';
+  const bs = document.getElementById('badge-serie');
+  if (cfg.serie > 0) bs.textContent = `${serieVitorias[0]} – ${serieVitorias[1]} (${cfg.lang === 'pt' ? 'melhor de' : 'best of'} ${cfg.serie})`; else bs.textContent = `${serieVitorias[0]} – ${serieVitorias[1]}`;
+  document.getElementById('org-botoes').style.display = cfg.orgBotoesVisiveis ? 'flex' : 'none';
+  document.body.style.setProperty('--hand-w', cfg.handWidth + 'px'); document.body.style.setProperty('--hand-cols', cfg.handCols);
+  document.body.style.setProperty('--lixo-h', cfg.lixoHeight + 'px'); document.body.style.setProperty('--lixo-cols', cfg.lixoCols);
+  document.body.style.setProperty('--mesa-w', cfg.mesaWidth + 'px');
+  document.getElementById('badge-espectador').style.display = cfg.modoJogo === 'AIvAI' ? 'inline-block' : 'none';
+  renderTestToggles();
+}
+
+function renderAcoes() {
+  const area = document.getElementById('acoes'); area.innerHTML = ''; if (G.finalizado) return;
+  if (cfg.modoJogo === 'AIvAI') { const d = document.createElement('div'); d.className = 'aguarde'; d.textContent = '👁️ Modo Espectador...'; area.appendChild(d); return; }
+  const meuTurno = G.turno === 0; const j = G.jogadores[0];
+  if (!meuTurno) { const d = document.createElement('div'); d.className = 'aguarde'; d.textContent = t('aguarde'); area.appendChild(d); return; }
+  const btn = (txt, fn, enabled, cls) => { const b = document.createElement('button'); b.textContent = txt; b.disabled = !enabled; if (cls) b.className = cls; b.addEventListener('click', fn); area.appendChild(b); };
+  if (G.fase === 'draw') {
+    const podeComprar = G.monte.length > 0 || G.mortos.some((m, i) => G.mortosDono[i] === null && m.length > 0);
+    btn(t('btn_comprar'), () => { comprarDoMonte(); render(); }, podeComprar);
+    btn(t('btn_lixo'), () => { pegarLixo(); render(); }, G.lixo.length > 0);
+    return;
+  }
+  if (cfg.unlimitedDraw) { const podeComprar = G.monte.length > 0 || G.mortos.some((m, i) => G.mortosDono[i] === null && m.length > 0); btn('Comprar Mais', () => { comprarDoMonte(); render(); }, podeComprar, ''); }
+  const sel = [...G.selecionadas];
+  if (sel.length >= 3) { btn(t('btn_baixar'), () => tentarBaixar(false), true, ''); btn('Baixar Virada', () => tentarBaixar(true), true, ''); }
+  else { btn(t('btn_baixar'), () => {}, false, ''); }
+  btn(t('btn_descartar'), () => { if (sel.length !== 1) return; if (descartar(0, sel[0])) { G.selecionadas.clear(); render(); } }, sel.length === 1);
+  if (podeBater(0)) btn(t('btn_bater'), () => { bater(0); }, true, 'bater');
+  if (j.mao.length === 0) btn(t('btn_passar'), () => { passar(); }, true);
+}
+
+function render() {
+  if (!G) return;
+  renderMaoJogador(); renderBarraInfo(); renderLixo(); renderMelds(); renderStatus(); renderAcoes(); salvarEstado();
+}
+
+function onMeldClick(meldId, ownerIdx) {
+  if (G.finalizado || G.turno !== 0 || G.fase !== 'play' || cfg.modoJogo === 'AIvAI') return;
+  const j = G.jogadores[ownerIdx]; const meld = j.melds.find(m => m.id === meldId); if (!meld) return;
+  if (meld.virada) { acaoViradaMeldId = meldId; document.getElementById('modal-acao-virada').classList.add('aberto'); return; }
+  if (ownerIdx !== 0) { addLog('Só é possível encaixar nas suas jogadas.'); return; }
+  const sel = [...G.selecionadas];
+  if (sel.length !== 1) { addLog('Selecione exatamente 1 carta.'); return; }
+  if (encaixar(0, meldId, sel[0])) { G.selecionadas.clear(); render(); }
+}
+
+window.acaoVirada = function(tipo) {
+  const j = G.jogadores[0]; const meld = j.melds.find(m => m.id === acaoViradaMeldId); if (!meld) return;
+  if (tipo === 'revelar') { meld.virada = false; addLog('Você revelou uma jogada.'); }
+  else if (tipo === 'voltar') { meld.cards.forEach(c => j.mao.push(c.card)); j.melds = j.melds.filter(m => m.id !== acaoViradaMeldId); addLog('Devolveu para a mão.'); }
+  document.getElementById('modal-acao-virada').classList.remove('aberto'); render();
+}
+
+function tentarBaixar(virada) {
+  const j = G.jogadores[0]; const cards = [...G.selecionadas].map(id => j.mao.find(c => c.id === id)).filter(Boolean);
+  if (cards.length < 3) { addLog('Selecione pelo menos 3 cartas.'); return; }
+  const t = verificarTrinca(cards); if (t.valida) { if (baixarJogada(0, cards, 'trinca', virada)) { G.selecionadas.clear(); render(); return; } }
+  const s = verificarSequencia(cards); if (s.valida) { if (baixarJogada(0, cards, 'sequencia', virada)) { G.selecionadas.clear(); render(); return; } }
+  addLog('Jogada inválida.'); render();
+}
+
+function mostrarFimDeJogo(vencedor, porMonte) {
+  const modal = document.getElementById('modal-fim'); const titulo = document.getElementById('fim-titulo'); const conteudo = document.getElementById('fim-conteudo'); const btn = document.getElementById('fim-btn');
+  const nomes = [G.jogadores[0].nome, G.jogadores[1].nome]; let html = '';
+  if (porMonte) {
+    const pMesa = idx => G.jogadores[idx].melds.reduce((s, m) => s + calcularPontuacaoJogada(m), 0);
+    const pMao = idx => G.jogadores[idx].mao.reduce((s, c) => s + pontosCarta(c.rank), 0);
+    titulo.textContent = t('fim_titulo');
+    for (let i = 0; i < 2; i++) html += `<h3>${nomes[i]}</h3><table><tr><td>Mão</td><td class="neg">${pMao(i)}</td></tr><tr><td>Mesa</td><td class="pos">${pMesa(i)}</td></tr></table>`;
+    html += `<h2 style="margin-top:14px;color:#ffd54f;">${t('vencedor', nomes[vencedor])}</h2>`;
+  } else {
+    const perdedor = 1 - vencedor; titulo.textContent = t('bateu', nomes[vencedor]);
+    const canV = G.jogadores[vencedor].melds.filter(m => ehCanastra(m)).reduce((s, m) => s + calcularPontuacaoJogada(m), 0);
+    const canP = G.jogadores[perdedor].melds.filter(m => ehCanastra(m)).reduce((s, m) => s + calcularPontuacaoJogada(m), 0);
+    let mskV = G.jogadores[vencedor].melds.reduce((s, m) => s + calcularPontuacaoJogada(m), 0);
+    let mskP = G.jogadores[perdedor].melds.reduce((s, m) => s + calcularPontuacaoJogada(m), 0);
+    const maoP = G.jogadores[perdedor].mao.reduce((s, c) => s + pontosCarta(c.rank), 0);
+    const bV = 100; const totCanV = canV + bV; const diffC = totCanV - canP;
+    if (diffC > 0) { mskP -= diffC; if (mskP < 0) mskP = 0; } else if (diffC < 0) { mskV -= Math.abs(diffC); if (mskV < 0) mskV = 0; }
+    mskP -= maoP; if (mskP < 0) mskP = 0;
+    const vFinal = mskV > mskP ? vencedor : perdedor; const diffF = Math.abs(mskV - mskP);
+    html += `<h3>1. Canastras</h3><table><tr><td>Canastras ${nomes[vencedor]}</td><td>${canV}</td></tr><tr><td>Bônus</td><td class="pos">+${bV}</td></tr><tr><td>Total</td><td>${totCanV}</td></tr><tr><td>Canastras ${nomes[perdedor]}</td><td>${canP}</td></tr></table>`;
+    html += `<h3>2. Pagamento</h3><table><tr><td>Mão ${nomes[perdedor]}</td><td class="neg">-${maoP}</td></tr><tr><td>Mesa ${nomes[perdedor]}</td><td>${mskP}</td></tr><tr><td>Mesa ${nomes[vencedor]}</td><td>${mskV}</td></tr></table>`;
+    html += `<h2 style="margin-top:14px;color:#ffd54f;">🏆 Vencedor: ${nomes[vFinal]} (Dif: ${diffF})</h2>`;
+    serieVitorias[vFinal]++;
+  }
+  conteudo.innerHTML = html; modal.classList.add('aberto');
+  btn.onclick = () => { modal.classList.remove('aberto'); if (cfg.serie > 0) { const alvo = Math.ceil(cfg.serie / 2); if (serieVitorias[0] >= alvo || serieVitorias[1] >= alvo) { showConfirm('Série', `Fim de Série!\n${nomes[0]}: ${serieVitorias[0]}\n${nomes[1]}: ${serieVitorias[1]}`, () => { serieVitorias = [0, 0]; novoJogo(); }); return; } } novoJogo(); };
+}
+
+function abrirSecaoCfg(secao) {
+  document.getElementById('cfg-menu-principal').style.display = 'none'; document.querySelectorAll('.cfg-secao').forEach(el => el.style.display = 'none');
+  if (secao === 'admin') { document.getElementById('modal-senha').classList.add('aberto'); document.getElementById('senha-input').value = ''; document.getElementById('senha-input').focus(); return; }
+  document.getElementById('cfg-sec-' + secao).style.display = 'block';
+  const titulos = { 'jogadores': t('sec_jog'), 'log': t('sec_log'), 'interface': t('sec_int'), 'regras': t('sec_reg'), 'idioma': t('sec_idioma') };
+  document.getElementById('cfg-titulo').textContent = titulos[secao] || t('menu'); document.getElementById('cfg-voltar').style.display = 'inline-block';
+}
+
+function voltarMenuCfg() {
+  document.querySelectorAll('.cfg-secao').forEach(el => el.style.display = 'none');
+  document.getElementById('cfg-menu-principal').style.display = 'block';
+  document.getElementById('cfg-titulo').textContent = t('menu'); document.getElementById('cfg-voltar').style.display = 'none';
+}
+
+function abrirConfig() {
+  voltarMenuCfg();
+  document.getElementById('cfg-nome1').value = cfg.nome1; document.getElementById('cfg-nome2').value = cfg.nome2;
+  document.getElementById('cfg-meles').checked = cfg.meleBloqueado; document.getElementById('cfg-dois').checked = cfg.doisMelesTrinca;
+  document.getElementById('cfg-nivel').value = String(cfg.nivelCPU); document.getElementById('cfg-serie').value = String(cfg.serie);
+  document.getElementById('cfg-verCarta').checked = cfg.verCarta; document.getElementById('cfg-logVisivel').checked = cfg.logVisivel;
+  document.getElementById('cfg-toastAtivo').checked = cfg.toastAtivo; document.getElementById('cfg-orgBotoes').checked = cfg.orgBotoesVisiveis;
+  document.getElementById('cfg-hand-w').value = cfg.handWidth; document.getElementById('cfg-hand-cols').value = cfg.handCols;
+  document.getElementById('cfg-lixo-h').value = cfg.lixoHeight; document.getElementById('cfg-lixo-quebra').checked = cfg.lixoCols > 0;
+  document.getElementById('cfg-lixo-cols').value = cfg.lixoCols > 0 ? cfg.lixoCols : 6; document.getElementById('cfg-mesa-w').value = cfg.mesaWidth;
+  document.getElementById('cfg-modoJogo').value = cfg.modoJogo;
+  document.getElementById('btn-menu-admin').style.display = cfg.isAdminVisible ? 'block' : 'none';
+  if (cfg.isAdmin) {
+    document.getElementById('cfg-inspecao').checked = cfg.inspecao; document.getElementById('cfg-unlimitedDraw').checked = cfg.unlimitedDraw;
+    document.getElementById('cfg-unlimitedDiscard').checked = cfg.unlimitedDiscard; document.getElementById('cfg-cheatMode').checked = cfg.cheatMode;
+    updateToggleToolsBtn();
+  }
+  document.getElementById('modal-cfg').classList.add('aberto');
+}
+function fecharConfig() { document.getElementById('modal-cfg').classList.remove('aberto'); }
+
+function salvarConfig() {
+  const mudouModo = cfg.modoJogo !== document.getElementById('cfg-modoJogo').value;
+  cfg.nome1 = document.getElementById('cfg-nome1').value.trim() || 'Você'; cfg.nome2 = document.getElementById('cfg-nome2').value.trim() || 'CPU';
+  cfg.meleBloqueado = document.getElementById('cfg-meles').checked; cfg.doisMelesTrinca = document.getElementById('cfg-dois').checked;
+  cfg.nivelCPU = parseInt(document.getElementById('cfg-nivel').value, 10); cfg.serie = parseInt(document.getElementById('cfg-serie').value, 10);
+  cfg.verCarta = document.getElementById('cfg-verCarta').checked; cfg.logVisivel = document.getElementById('cfg-logVisivel').checked;
+  cfg.toastAtivo = document.getElementById('cfg-toastAtivo').checked; cfg.orgBotoesVisiveis = document.getElementById('cfg-orgBotoes').checked;
+  cfg.handWidth = parseInt(document.getElementById('cfg-hand-w').value, 10) || 52; cfg.handCols = parseInt(document.getElementById('cfg-hand-cols').value, 10) || 8;
+  cfg.lixoHeight = parseInt(document.getElementById('cfg-lixo-h').value, 10) || 46; cfg.lixoCols = document.getElementById('cfg-lixo-quebra').checked ? (parseInt(document.getElementById('cfg-lixo-cols').value, 10) || 6) : 0;
+  cfg.mesaWidth = parseInt(document.getElementById('cfg-mesa-w').value, 10) || 24; cfg.modoJogo = document.getElementById('cfg-modoJogo').value;
+  if (cfg.isAdmin) {
+    cfg.inspecao = document.getElementById('cfg-inspecao').checked; cfg.unlimitedDraw = document.getElementById('cfg-unlimitedDraw').checked;
+    cfg.unlimitedDiscard = document.getElementById('cfg-unlimitedDiscard').checked; cfg.cheatMode = document.getElementById('cfg-cheatMode').checked;
+  }
+  salvarCfg(); if (G) { G.jogadores[0].nome = cfg.nome1; G.jogadores[1].nome = cfg.nome2; }
+  fecharConfig(); traduzirInterface(); if (mudouModo) novoJogo();
+}
+
+function init() {
+  carregarCfg(); traduzirInterface();
+  document.getElementById('btn-config').addEventListener('click', abrirConfig);
+  document.getElementById('btn-ver-mesa').addEventListener('click', abrirModalMesa);
+  document.getElementById('cfg-salvar').addEventListener('click', salvarConfig);
+  document.getElementById('btn-hist-menu').addEventListener('click', abrirHistorico);
+  document.getElementById('btn-novo-menu').addEventListener('click', () => { showConfirm(t('confirmar'), t('msg_novo_jogo'), () => { fecharConfig(); novoJogo(); }); });
+  document.getElementById('modal-cfg').addEventListener('click', e => { if (e.target.id === 'modal-cfg') fecharConfig(); });
+  document.getElementById('btn-fullscreen').addEventListener('click', () => {
+    if (!document.fullscreenElement) document.documentElement.requestFullscreen().catch((err) => { showToast(`Erro: ${err.message}`); });
+    else { if (document.exitFullscreen) document.exitFullscreen(); }
+  });
+  
+  // Botão Secreto Admin
+  const tituloElement = document.getElementById('titulo-secreto');
+  tituloElement.addEventListener('pointerdown', (e) => {
+    e.preventDefault(); secretClicks++;
+    if (secretClicks === 11) { secretClicks = 0; cfg.isAdminVisible = true; salvarCfg(); showToast("🔓 Modo Desenvolvedor Desbloqueado"); if (document.getElementById('modal-cfg').classList.contains('aberto')) document.getElementById('btn-menu-admin').style.display = 'block'; }
+    if (secretTimer) clearTimeout(secretTimer); secretTimer = setTimeout(() => { secretClicks = 0; }, 1500); 
+  });
+  document.addEventListener('pointerdown', (e) => { if (!tituloElement.contains(e.target)) { secretClicks = 0; if (secretTimer) clearTimeout(secretTimer); } });
+
+  if (!carregarEstadoSalvo()) novoJogo();
+  else { render(); if (cfg.modoJogo === 'AIvAI' || G.turno === 1) setTimeout(cpuStep, 1000); }
+}
+document.addEventListener('DOMContentLoaded', init);
+</script>
+</body>
+</html>
