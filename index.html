@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
-<title>Batidinha V7.4 (Solo)</title>
+<title>Biriba V7.4 (Solo)</title>
 <style>
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
 html,body{margin:0;padding:0;height:100%;overflow:hidden;overscroll-behavior:none}
@@ -48,6 +48,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;b
 .meld .card{margin-right:-6px;width:var(--mesa-w);height:auto;aspect-ratio:34/48}
 .meld .card:last-of-type{margin-right:0}
 .meld-pts{margin-left:6px;font-size:9px;font-weight:800;color:#aaa;background:rgba(0,0,0,.4);border-radius:6px;padding:1px 5px}
+.meld-pts.pos{color:#ffd54f}
 .meld.virada{border:2px solid #4caf50}
 .meld.virada.oculta .card{background:linear-gradient(135deg,#1e3a8a,#3b82f6);border:1px solid #1e40af}
 .meld.virada.oculta .card .r,.meld.virada.oculta .card .s{display:none}
@@ -66,7 +67,6 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;b
 .linha-info{display:flex;gap:6px;align-items:center;padding-bottom:3px;flex-wrap:wrap}
 .badge{font-size:10px;background:rgba(255,255,255,.12);padding:2px 6px;border-radius:6px}
 .badge.ok{background:#2e7d32;color:#fff}
-.badge.progresso{background:#1565c0;color:#fff;font-weight:700}
 #org-botoes{display:flex;gap:4px;margin-bottom:4px}
 #org-botoes button{flex:0 1 auto;font-size:10px;padding:4px 8px;border-radius:4px;background:#2e7d32;color:#fff;border:1px solid #4caf50;font-weight:700;cursor:pointer}
 #mao-jogador{display:grid;grid-template-columns:repeat(var(--hand-cols,8),minmax(0,1fr));gap:4px;justify-items:center;align-content:start;padding-top:14px;padding-bottom:10px;max-height:42vh;overflow-y:auto;min-height:60px}
@@ -82,6 +82,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;b
 .card .r{font-size:14px}
 .card .s{font-size:16px}
 .card.red{color:#c62828}
+.card.wild{box-shadow:0 0 0 2px #ffd54f}
 .card.sel{transform:translateY(-12px);box-shadow:0 0 0 2px #42a5f5,0 7px 12px rgba(0,0,0,.55)}
 .card.static{cursor:default}
 .card.arrastando{opacity:.6;transform:scale(1.1);z-index:999!important}
@@ -126,7 +127,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;b
 <div id="tesla-pointer"><div class="tp-outer"></div><div class="tp-inner"></div></div>
 
 <div id="topo">
-  <span class="titulo" id="titulo-secreto">BATIDINHA <span class="versao" id="topo-versao">V7.4-Solo</span></span>
+  <span class="titulo" id="titulo-secreto">BIRIBA <span class="versao" id="topo-versao">V7.4-Solo</span></span>
   <span class="badge" id="badge-serie" style="margin-left:10px;background:rgba(255,213,79,.15);color:#ffd54f;font-weight:800;padding:2px 8px;border-radius:6px;font-size:11px">(0 - 0)</span>
   <span class="badge-espectador" id="badge-espectador">👁️ ESPECTADOR</span>
   <span class="esp"></span>
@@ -140,10 +141,12 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;b
 <div id="barra-info">
   <div class="info-cpu" onclick="abrirInspecao('cpu')">
     <div class="rotulo">CPU</div>
-    <div class="card-back"><div class="contagem" id="cartas-cpu">9</div></div>
+    <div class="card-back"><div class="contagem" id="cartas-cpu">11</div></div>
   </div>
   <div class="info-pilhas">
     <div class="pilha-item" onclick="abrirInspecao('monte')"><div class="rotulo">Monte</div><div class="pilha" id="p-monte"></div></div>
+    <div class="pilha-item" id="pilha-m0" onclick="abrirInspecao('m0')"><div class="rotulo">1º Morto</div><div class="pilha" id="p-m0"></div></div>
+    <div class="pilha-item" id="pilha-m1" onclick="abrirInspecao('m1')"><div class="rotulo">2º Morto</div><div class="pilha" id="p-m1"></div></div>
   </div>
 </div>
 
@@ -165,8 +168,8 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;b
 <div id="area-jogador">
   <div class="linha-info">
     <b id="nome-jogador">Você</b>
-    <span class="badge" id="cartas-jogador">9 cartas</span>
-    <span class="badge progresso" id="badge-vitoria">0/3 JOGOS</span>
+    <span class="badge" id="cartas-jogador">11 cartas</span>
+    <span class="badge ok" id="badge-vitoria" style="display:none">CANASTRA</span>
   </div>
   <div id="org-botoes" style="display:none">
     <button onclick="organizarMao('naipe')">Naipes</button>
@@ -179,7 +182,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;b
 
 <div class="modal-fundo" id="modal-jogo">
   <div class="modal">
-    <h2>Batidinha</h2>
+    <h2>Biriba</h2>
     <button class="btn-jogo" id="btn-jogo-continuar" style="display:none;color:#ffd54f;border-color:#ffd54f" onclick="continuarJogoSalvo()">
       <b>▶️ Continuar Jogo Salvo</b><small>Retomar a partida onde parou.</small>
     </button>
@@ -208,8 +211,9 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;b
       <button class="cfg-menu-btn" onclick="abrirSecaoCfg('jogadores')">Jogadores</button>
       <button class="cfg-menu-btn" onclick="abrirSecaoCfg('log')">Log e Privacidade</button>
       <button class="cfg-menu-btn" onclick="abrirSecaoCfg('interface')">Interface</button>
+      <button class="cfg-menu-btn" onclick="abrirSecaoCfg('regras')">Regras do Biriba</button>
       <button class="cfg-menu-btn" onclick="abrirSecaoCfg('tesla')" style="color:#ffd54f;border-color:#ffd54f">🤖 SISTEMA TESLA</button>
-      <button class="cfg-menu-btn" onclick="abrirRegrasJogo()">📋 Regras do Batidinha</button>
+      <button class="cfg-menu-btn" onclick="abrirRegrasJogo()">📋 Regras Completas</button>
       <hr style="border-color:rgba(255,255,255,.1);margin:16px 0">
       <button class="cfg-menu-btn" onclick="abrirHistorico()" style="color:#ffd54f">📜 Histórico</button>
       <button class="cfg-menu-btn" onclick="confirmarNovoJogo()" style="color:#ef9a9a">🔄 Iniciar Novo Jogo</button>
@@ -239,6 +243,13 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;b
       <div class="cfg-linha"><span>Lixo quebra linha?</span><input type="checkbox" id="cfg-lixo-quebra"></div>
       <div class="cfg-linha"><span>Cartas/linha (Lixo)</span><input type="number" id="cfg-lixo-cols" min="3" max="15"></div>
       <div class="cfg-linha"><span>Exibir botões de organizar</span><input type="checkbox" id="cfg-orgBotoes"></div>
+    </div>
+    <div id="cfg-sec-regras" class="cfg-secao" style="display:none">
+      <div class="cfg-linha"><span>Melê Bloqueado</span><input type="checkbox" id="cfg-meles"></div>
+      <div class="cfg-linha"><span>Máx. 2 melês na trinca</span><input type="checkbox" id="cfg-dois"></div>
+      <div class="cfg-linha"><span>Nível da CPU</span>
+        <select id="cfg-nivel"><option value="1">1 — Fácil</option><option value="3">3 — Normal</option><option value="5">5 — Médio</option><option value="7">7 — Difícil</option><option value="9">9 — Mestre</option></select>
+      </div>
     </div>
     <div id="cfg-sec-tesla" class="cfg-secao" style="display:none">
       <p style="font-size:12px;color:#cfe9d6;margin-bottom:10px">SISTEMA TESLA: Telespectador com Explicação, Simulação e Lógica Automática.</p>
@@ -301,7 +312,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;b
 
 <div class="modal-fundo" id="modal-regras-jogo">
   <div class="modal">
-    <h2>Regras do Batidinha</h2>
+    <h2>Regras do Biriba</h2>
     <div id="regras-jogo-conteudo"></div>
     <button onclick="document.getElementById('modal-regras-jogo').classList.remove('aberto')" style="width:100%;margin-top:16px;background:#2e7d32;color:#fff;border:none;border-radius:9px;padding:12px;font-size:14px;font-weight:700;cursor:pointer">Entendido</button>
   </div>
@@ -351,7 +362,7 @@ const ORDEM_NUM = { '2':2,'3':3,'4':4,'5':5,'6':6,'7':7,'8':8,'9':9,'10':10,'J':
 
 let cfg = {
   nome1:'Você',nome2:'CPU',
-  serie:0,
+  meleBloqueado:false, doisMelesTrinca:true, nivelCPU:3, serie:0,
   verCarta:false,logVisivel:false,toastAtivo:false,
   orgBotoesVisiveis:false,handWidth:52,handCols:8,lixoWidth:32,lixoCols:0,mesaWidth:24,
   modoJogo:'PvAI',
@@ -361,8 +372,8 @@ let cfg = {
   teslaVoice:false,teslaVoiceMode:'both',teslaPointer:false,teslaToasts:false
 };
 
-function carregarCfg() { try { const r = localStorage.getItem('batidinha_cfg_v74solo'); if (r) Object.assign(cfg, JSON.parse(r)); } catch(e) {} }
-function salvarCfg() { try { localStorage.setItem('batidinha_cfg_v74solo', JSON.stringify(cfg)); } catch(e) {} }
+function carregarCfg() { try { const r = localStorage.getItem('biriba_cfg_v74solo'); if (r) Object.assign(cfg, JSON.parse(r)); } catch(e) {} }
+function salvarCfg() { try { localStorage.setItem('biriba_cfg_v74solo', JSON.stringify(cfg)); } catch(e) {} }
 
 let G = null;
 let meldIdCounter = 0;
@@ -372,13 +383,13 @@ let teslaGeneration = 0;
 let acaoViradaMeldId = null;
 let secretClicks = 0, secretTimer = null;
 
-function carregarSerie() { try { const r = localStorage.getItem('batidinha_serie_v74solo'); if (r) serieVitorias = JSON.parse(r); } catch(e) {} }
-function salvarSerie() { try { localStorage.setItem('batidinha_serie_v74solo', JSON.stringify(serieVitorias)); } catch(e) {} }
+function carregarSerie() { try { const r = localStorage.getItem('biriba_serie_v74solo'); if (r) serieVitorias = JSON.parse(r); } catch(e) {} }
+function salvarSerie() { try { localStorage.setItem('biriba_serie_v74solo', JSON.stringify(serieVitorias)); } catch(e) {} }
 
-function salvarEstado() { if (!G) return; try { localStorage.setItem('batidinha_save_v74solo', JSON.stringify({ ...G, selecionadas: [...G.selecionadas], serieVitorias })); } catch(e) {} }
+function salvarEstado() { if (!G) return; try { localStorage.setItem('biriba_save_v74solo', JSON.stringify({ ...G, selecionadas: [...G.selecionadas], serieVitorias })); } catch(e) {} }
 function carregarEstadoSalvo() {
   try {
-    const r = localStorage.getItem('batidinha_save_v74solo');
+    const r = localStorage.getItem('biriba_save_v74solo');
     if (r) {
       const l = JSON.parse(r);
       if (l && l.jogadores) {
@@ -397,43 +408,72 @@ function pontosCarta(rank) { if (rank === 'A') return 15; if (rank === '2') retu
 function criarBaralho() { const cs = []; let id = 0; for (let d = 0; d < 2; d++) for (const s of SUITS) for (const r of RANKS) cs.push({ id: id++, rank: r, suit: s, deck: d }); return cs; }
 function embaralhar(arr) { for (let i = arr.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [arr[i], arr[j]] = [arr[j], arr[i]]; } return arr; }
 
-// ============ BATIDINHA — VERIFICAÇÕES ============
 function verificarTrinca(cards) {
-  if (cards.length !== 3) return { valida: false, motivo: 'Exatamente 3 cartas' };
-  if (!cards.every(c => c.rank === cards[0].rank)) return { valida: false, motivo: 'Valores diferentes' };
+  const n = cards.length;
+  if (n < 3) return { valida: false, motivo: 'Mínimo 3 cartas' };
+  const naoDois = cards.filter(c => c.rank !== '2');
+  if (naoDois.length === 0) return { valida: true, isTrincaDeMele: true, tipo: 'trinca', rank: '2', wilds: n, ordenadas: cards.map(c => ({ card: c, wild: false })) };
+  if (naoDois.length < 2) return { valida: false, motivo: 'Mínimo 2 naturais' };
+  const rank = naoDois[0].rank;
+  if (!naoDois.every(c => c.rank === rank)) return { valida: false, motivo: 'Valores diferentes' };
   const su = {};
-  for (const c of cards) { su[c.suit] = (su[c.suit] || 0) + 1; if (su[c.suit] > 1) return { valida: false, motivo: 'Os 3 naipes devem ser diferentes' }; }
-  return { valida: true, tipo: 'trinca', rank: cards[0].rank, ordenadas: cards.map(c => ({ card: c, wild: false })) };
+  for (const c of naoDois) { su[c.suit] = (su[c.suit] || 0) + 1; if (su[c.suit] > 2) return { valida: false, motivo: 'Máx 2 por naipe' }; }
+  const wilds = cards.filter(c => c.rank === '2').length;
+  if (wilds > 0 && cfg.meleBloqueado) return { valida: false, motivo: 'Melês bloqueados' };
+  if (wilds > 2) return { valida: false, motivo: 'Máx 2 melês' };
+  return { valida: true, tipo: 'trinca', rank, wilds, ordenadas: cards.map(c => ({ card: c, wild: c.rank === '2' })) };
 }
 
 function verificarSequencia(cards) {
-  if (cards.length !== 3) return { valida: false, motivo: 'Exatamente 3 cartas' };
-  const naipe = cards[0].suit;
-  if (!cards.every(c => c.suit === naipe)) return { valida: false, motivo: 'Naipes diferentes' };
-  for (let start = 1; start <= 12; start++) {
-    const need = [rankName(start), rankName(start+1), rankName(start+2)];
-    const pool = [...cards], ord = []; let ok = true;
-    for (const r of need) { const i = pool.findIndex(c => c.rank === r); if (i === -1) { ok = false; break; } ord.push(pool.splice(i,1)[0]); }
-    if (ok) return { valida: true, tipo: 'sequencia', naipe, startRank: start, ordenadas: ord.map(c => ({ card: c, wild: false })) };
+  const n = cards.length;
+  if (n < 3) return { valida: false, motivo: 'Mínimo 3 cartas' };
+  const naoDois = cards.filter(c => c.rank !== '2');
+  if (naoDois.length === 0) return { valida: false, motivo: 'Só melês' };
+  if (naoDois.length < 2) return { valida: false, motivo: 'Mínimo 2 naturais' };
+  const naipe = naoDois[0].suit;
+  if (!naoDois.every(c => c.suit === naipe)) return { valida: false, motivo: 'Naipes diferentes' };
+  const wd = cards.filter(c => c.rank === '2').length;
+  if (wd > 0 && cfg.meleBloqueado) return { valida: false, motivo: 'Melês bloqueados' };
+  const totalDois = cards.filter(c => c.rank === '2').length;
+  for (let start = 1; start + n - 1 <= 14; start++) {
+    const pool = cards.slice(), ord = []; let ok = true;
+    for (let i = 0; i < n; i++) {
+      const pos = start + i, rn = rankName(pos);
+      let idx = pool.findIndex(c => c.rank === rn && c.suit === naipe);
+      if (idx >= 0) { const c = pool.splice(idx,1)[0]; ord.push({ card: c, wild: false }); }
+      else {
+        idx = pool.findIndex(c => c.rank === '2');
+        if (idx >= 0) { const c = pool[idx]; if (c.suit === naipe && totalDois >= 2) { ok = false; break; } pool.splice(idx,1); ord.push({ card: c, wild: true }); }
+        else { ok = false; break; }
+      }
+    }
+    if (ok) return { valida: true, tipo: 'sequencia', naipe, startRank: start, ordenadas: ord };
   }
   return { valida: false, motivo: 'Não forma sequência' };
 }
 
-function verificarJogada(cards) {
-  const t = verificarTrinca(cards); if (t.valida) return t;
-  const s = verificarSequencia(cards); if (s.valida) return s;
-  return { valida: false, motivo: 'Jogada inválida' };
+function calcularPontuacaoJogada(meld) {
+  if (meld.bluff) return 0;
+  const n = meld.cards.length;
+  const isTrincaDeMele = meld.cards.every(c => c.card.rank === '2');
+  const temWild = meld.cards.some(c => c.wild);
+  if (meld.type === 'trinca') { if (isTrincaDeMele) return n >= 7 ? 200 : 0; if (temWild) return 0; return n >= 7 ? 200 : 0; }
+  if (n === 14 && meld.startRank === 1) return temWild ? 100 : 500;
+  if (n >= 7) return temWild ? 100 : 200;
+  return 0;
 }
+function ehCanastra(meld) { return calcularPontuacaoJogada(meld) >= 100; }
 
 function novoJogo() {
   isProcessingAI = false; teslaGeneration++; hidePointer();
   const deck = embaralhar(criarBaralho());
   G = {
     jogadores: [
-      { nome: cfg.nome1, mao: [], melds: [], isCPU: cfg.modoJogo === 'AIvAI' },
-      { nome: cfg.nome2, mao: [], melds: [], isCPU: true }
+      { nome: cfg.nome1, mao: [], melds: [], mortosPegos: 0, isCPU: cfg.modoJogo === 'AIvAI' },
+      { nome: cfg.nome2, mao: [], melds: [], mortosPegos: 0, isCPU: true }
     ],
-    monte: [], lixo: [],
+    monte: [], lixo: [], mortos: [[], []], mortosDono: [null, null],
+    mortosNoJogo: 2,
     turno: Math.random() < 0.5 ? 0 : 1, fase: 'draw', finalizado: false,
     selecionadas: new Set(), logs: [], turnoInicial: 0,
     primeiraPuxadaAtiva: false, ultimaPuxadaId: null, lixoOriginal: []
@@ -441,9 +481,11 @@ function novoJogo() {
   G.turnoInicial = G.turno;
   G.primeiraPuxadaAtiva = (G.turnoInicial === 0);
   meldIdCounter = 0;
-  for (let i = 0; i < 9; i++) { G.jogadores[0].mao.push(deck.pop()); G.jogadores[1].mao.push(deck.pop()); }
+  for (let i = 0; i < 11; i++) { G.jogadores[0].mao.push(deck.pop()); G.jogadores[1].mao.push(deck.pop()); }
+  for (let i = 0; i < 11; i++) G.mortos[0].push(deck.pop());
+  for (let i = 0; i < 11; i++) G.mortos[1].push(deck.pop());
   G.monte = deck;
-  addLog(`Batidinha: novo jogo! ${G.jogadores[G.turno].nome} começa.`);
+  addLog(`Biriba: novo jogo! ${G.jogadores[G.turno].nome} começa.`);
   render();
   if (cfg.modoJogo === 'AIvAI' || G.turno === 1) scheduleCpuTurn(900);
 }
@@ -454,9 +496,20 @@ function addLog(msg) { G.logs.push(msg); if (G.logs.length > 100) G.logs.shift()
 function renderLog() { const el = document.getElementById('log'); el.classList.toggle('oculto', !cfg.logVisivel); el.innerHTML = ''; G.logs.slice(-12).forEach(m => { const d = document.createElement('div'); d.textContent = m; el.appendChild(d); }); el.scrollTop = el.scrollHeight; }
 function showToast(msg) { const c = document.getElementById('toast-container'); const t = document.createElement('div'); t.className = 'toast'; t.textContent = msg; c.appendChild(t); setTimeout(() => { t.style.animation = 'fadeOut 0.3s ease-in forwards'; setTimeout(() => t.remove(), 300); }, 3000); }
 
+function reporMonte() {
+  if (G.monte.length > 0) return true;
+  for (let i = 0; i < 2; i++) {
+    if (G.mortosDono[i] === null && G.mortos[i].length > 0) {
+      G.monte = embaralhar(G.mortos[i]); G.mortos[i] = []; G.mortosDono[i] = -1; G.mortosNoJogo--;
+      addLog(`Monte vazio: ${i + 1}º morto virou monte`); return true;
+    }
+  }
+  return false;
+}
+
 function comprarDoMonte() {
   if (G.fase !== 'draw' || G.finalizado) return;
-  if (G.monte.length === 0) { fimPorMonte(); return; }
+  if (!reporMonte()) { fimPorMonte(); return; }
   const c = G.monte.pop(); G.jogadores[G.turno].mao.push(c);
   if (G.turno === 0) G.ultimaPuxadaId = c.id;
   if (G.turno === 0 && cfg.unlimitedDraw) {} else G.fase = 'play';
@@ -467,10 +520,10 @@ function pegarLixo() {
   if (G.fase !== 'draw' || G.finalizado) return;
   if (G.lixo.length === 0) { addLog('Lixo vazio.'); return; }
   const j = G.jogadores[G.turno];
-  const card = G.lixo.pop();
-  if (G.turno === 0) G.lixoOriginal = [card.id];
-  j.mao.push(card); G.fase = 'play';
-  addLog(`${j.nome} pegou ${card.rank}${card.suit} do lixo`);
+  const qtd = G.lixo.length;
+  if (G.turno === 0) G.lixoOriginal = G.lixo.map(c => c.id);
+  j.mao.push(...G.lixo); G.lixo = []; G.fase = 'play';
+  addLog(`${j.nome} pegou ${qtd} cartas do lixo`);
 }
 
 function devolverLixo() {
@@ -483,16 +536,38 @@ function devolverLixo() {
   addLog('Lixo devolvido.'); render();
 }
 
+function verificarMorto(idx, viaDescarte) {
+  const j = G.jogadores[idx];
+  if (j.mao.length > 0) return false;
+  if (j.mortosPegos >= G.mortosNoJogo) return false;
+  if (viaDescarte && j.mortosPegos >= 1) return false;
+  for (let i = 0; i < 2; i++) {
+    if (G.mortosDono[i] !== null) continue;
+    if (G.mortos[i].length === 0) continue;
+    j.mao.push(...G.mortos[i]); G.mortos[i] = []; G.mortosDono[i] = idx; j.mortosPegos++;
+    addLog(`${j.nome} pegou o ${i + 1}º morto (${j.mao.length} cartas)!`); return true;
+  }
+  return false;
+}
+
+function bloqueioMaoVazia(novaMao) {
+  if (!cfg.meleBloqueado) return false;
+  if (novaMao.length === 0) return false;
+  return novaMao.every(c => c.rank === '2');
+}
+
 function baixarJogada(idx, cards, tipo, virada = false) {
   const j = G.jogadores[idx];
   const res = tipo === 'trinca' ? verificarTrinca(cards) : verificarSequencia(cards);
   if (!res.valida) { addLog(`Erro: ${res.motivo}`); return false; }
   const ids = new Set(cards.map(c => c.id));
-  j.mao = j.mao.filter(c => !ids.has(c.id));
+  const novaMao = j.mao.filter(c => !ids.has(c.id));
+  if (bloqueioMaoVazia(novaMao)) { addLog('Bloqueado.'); return false; }
+  j.mao = novaMao;
   j.melds.push({ id: ++meldIdCounter, type: tipo, cards: res.ordenadas, rank: res.rank || null, suit: res.naipe || null, startRank: res.startRank || 0, owner: idx, virada, bluff: false });
   const desc = tipo === 'trinca' ? `trinca de ${res.rank}` : `sequência de ${res.naipe}`;
   addLog(`${j.nome} baixou ${desc}${virada ? ' (virada)' : ''}`);
-  return true;
+  verificarMorto(idx, false); return true;
 }
 
 function baixarBlefe(idx, cards) {
@@ -501,28 +576,83 @@ function baixarBlefe(idx, cards) {
   const sq = verificarSequencia(cards);
   const valida = tr.valida || sq.valida;
   const ids = new Set(cards.map(c => c.id));
-  j.mao = j.mao.filter(c => !ids.has(c.id));
+  const novaMao = j.mao.filter(c => !ids.has(c.id));
+  if (bloqueioMaoVazia(novaMao)) { addLog('Bloqueado.'); return false; }
+  j.mao = novaMao;
   const meld = { id: ++meldIdCounter, type: valida ? (tr.valida ? 'trinca' : 'sequencia') : 'bluff',
     cards: tr.valida ? tr.ordenadas : (sq.valida ? sq.ordenadas : cards.map(c => ({ card: c, wild: false }))),
     rank: tr.rank || null, suit: sq.naipe || null, startRank: sq.startRank || 0, owner: idx, virada: true, bluff: !valida };
   j.melds.push(meld);
   if (valida) { const desc = tr.valida ? `trinca de ${tr.rank}` : `sequência de ${sq.naipe}`; addLog(`${j.nome} baixou ${desc} (virada)`); }
   else addLog(`${j.nome} baixou um BLEFE (virado)`);
-  return true;
+  verificarMorto(idx, false); return true;
+}
+
+function tentarEncaixar(meld, card) {
+  if (meld.virada) return { ok: false, motivo: 'Virada' };
+  if (meld.bluff) return { ok: false, motivo: 'Blefe' };
+  if (meld.type === 'trinca') {
+    if (card.rank === '2') {
+      if (cfg.meleBloqueado) return { ok: false, motivo: 'Melês blq' };
+      if (meld.cards.filter(c => c.wild).length >= 2) return { ok: false, motivo: 'Máx 2 melês' };
+      meld.cards.push({ card, wild: true }); return { ok: true };
+    }
+    if (card.rank !== meld.rank) return { ok: false, motivo: 'Valor errado' };
+    if (meld.cards.filter(c => !c.wild && c.card.suit === card.suit).length >= 2) return { ok: false, motivo: '2 do naipe' };
+    meld.cards.push({ card, wild: false }); return { ok: true };
+  }
+  const n = meld.cards.length;
+  for (let i = 0; i < n; i++) {
+    const pos = meld.startRank + i;
+    if (meld.cards[i].wild && rankName(pos) === card.rank && card.suit === meld.suit) {
+      const ow = meld.cards[i].card; meld.cards[i] = { card, wild: false };
+      if (meld.startRank + meld.cards.length <= 14) { meld.cards.push({ card: ow, wild: true }); return { ok: true }; }
+      if (meld.startRank - 1 >= 1) { meld.cards.unshift({ card: ow, wild: true }); meld.startRank--; return { ok: true }; }
+      meld.cards[i] = { card: ow, wild: true }; return { ok: false, motivo: 'Melê preso' };
+    }
+  }
+  const pf = meld.startRank + n;
+  if (pf <= 14) {
+    const rn = rankName(pf);
+    if (card.rank === rn && card.suit === meld.suit) { meld.cards.push({ card, wild: false }); return { ok: true }; }
+    if (card.rank === '2' && !cfg.meleBloqueado) {
+      if (meld.cards.filter(c => c.card.rank === '2').length >= 2) return { ok: false, motivo: 'Máx 2 melês' };
+      meld.cards.push({ card, wild: true }); return { ok: true };
+    }
+  }
+  const pi = meld.startRank - 1;
+  if (pi >= 1) {
+    const rn = rankName(pi);
+    if (card.rank === rn && card.suit === meld.suit) { meld.cards.unshift({ card, wild: false }); meld.startRank--; return { ok: true }; }
+  }
+  return { ok: false, motivo: 'Não encaixa' };
+}
+
+function encaixar(idx, meldId, cardId) {
+  const j = G.jogadores[idx];
+  const meld = j.melds.find(m => m.id === meldId); if (!meld) return false;
+  const card = j.mao.find(c => c.id === cardId); if (!card) return false;
+  const novaMao = j.mao.filter(c => c.id !== cardId);
+  if (bloqueioMaoVazia(novaMao)) { addLog('Bloqueado.'); return false; }
+  const res = tentarEncaixar(meld, card);
+  if (!res.ok) { addLog(`Erro: ${res.motivo}`); return false; }
+  j.mao = novaMao; addLog(`${j.nome} encaixou`); verificarMorto(idx, false); return true;
 }
 
 function descartar(idx, cardId) {
   if (G.finalizado) return false;
   const j = G.jogadores[idx];
   const card = j.mao.find(c => c.id === cardId); if (!card) return false;
+  if (card.rank === '2' && cfg.meleBloqueado && !j.mao.every(c => c.rank === '2')) { addLog('Não descarta melê.'); return false; }
   j.mao = j.mao.filter(c => c.id !== cardId); G.lixo.push(card);
   addLog(`${j.nome} descartou ${card.rank}${card.suit}`);
   if (idx === 0 && G.primeiraPuxadaAtiva && G.ultimaPuxadaId === cardId) {
     G.primeiraPuxadaAtiva = false;
     addLog('Mesma carta descartada. Pode puxar novamente.');
-    G.fase = 'draw'; render(); return true;
+    G.fase = 'draw'; verificarMorto(idx, true); render(); return true;
   } else if (idx === 0 && G.primeiraPuxadaAtiva) G.primeiraPuxadaAtiva = false;
   if (podeBater(idx)) { bater(idx); return true; }
+  verificarMorto(idx, true);
   if (idx === 0 && cfg.unlimitedDiscard) render(); else finalizarTurno();
   return true;
 }
@@ -538,9 +668,8 @@ function finalizarTurno() {
 
 function podeBater(idx) {
   const j = G.jogadores[idx];
-  if (j.mao.length !== 0) return false;
-  const reais = j.melds.filter(m => !m.bluff);
-  return reais.length >= 3 && reais.every(m => m.cards.length === 3);
+  const todos = (G.mortosDono[0] !== null && G.mortosDono[1] !== null);
+  return todos && j.mao.length === 0 && j.melds.some(m => !m.bluff && ehCanastra(m));
 }
 
 function bater(idx) {
@@ -553,11 +682,9 @@ function bater(idx) {
 
 function fimPorMonte() {
   G.finalizado = true; addLog('Fim por monte vazio.');
-  const p0 = G.jogadores[0].mao.length, p1 = G.jogadores[1].mao.length;
-  const m0 = G.jogadores[0].melds.filter(m => !m.bluff).length;
-  const m1 = G.jogadores[1].melds.filter(m => !m.bluff).length;
-  let v; if (p0 !== p1) v = p0 < p1 ? 0 : 1; else v = m0 >= m1 ? 0 : 1;
-  mostrarFim(v, true);
+  const p0 = G.jogadores[0].mao.reduce((s, c) => s + pontosCarta(c.rank), 0);
+  const p1 = G.jogadores[1].mao.reduce((s, c) => s + pontosCarta(c.rank), 0);
+  mostrarFim(p0 <= p1 ? 0 : 1, true);
 }
 
 function mostrarFim(vencedor, porMonte) {
@@ -565,6 +692,7 @@ function mostrarFim(vencedor, porMonte) {
   const nomes = [G.jogadores[0].nome, G.jogadores[1].nome];
   const modoMD = cfg.serie > 0;
   let serieCompleta = false, alvo = 0;
+  let vFinal = vencedor;
   if (modoMD) { serieVitorias[vencedor]++; alvo = Math.ceil(cfg.serie / 2); serieCompleta = (serieVitorias[0] >= alvo || serieVitorias[1] >= alvo); }
   else serieVitorias[vencedor]++;
   salvarSerie();
@@ -573,23 +701,38 @@ function mostrarFim(vencedor, porMonte) {
   const btn = document.getElementById('fim-btn');
   document.getElementById('fim-titulo').textContent = serieCompleta ? '🏆 Fim de Série!' : '🏆 Fim de Jogo!';
   let html = '';
+  if (porMonte) {
+    const pM = idx => G.jogadores[idx].melds.reduce((s, m) => s + calcularPontuacaoJogada(m), 0);
+    const pMa = idx => G.jogadores[idx].mao.reduce((s, c) => s + pontosCarta(c.rank), 0);
+    for (let i = 0; i < 2; i++) html += `<h3>${nomes[i]}</h3><table><tr><td>Mão</td><td class="neg">${pMa(i)}</td></tr><tr><td>Mesa</td><td class="pos">${pM(i)}</td></tr></table>`;
+    html += `<h2 style="margin-top:14px;color:#ffd54f;">${nomes[vencedor]} venceu!</h2>`;
+  } else {
+    const perdedor = 1 - vencedor;
+    const canV = G.jogadores[vencedor].melds.filter(m => ehCanastra(m)).reduce((s, m) => s + calcularPontuacaoJogada(m), 0);
+    const canP = G.jogadores[perdedor].melds.filter(m => ehCanastra(m)).reduce((s, m) => s + calcularPontuacaoJogada(m), 0);
+    let mskV = G.jogadores[vencedor].melds.reduce((s, m) => s + calcularPontuacaoJogada(m), 0);
+    let mskP = G.jogadores[perdedor].melds.reduce((s, m) => s + calcularPontuacaoJogada(m), 0);
+    const maoP = G.jogadores[perdedor].mao.reduce((s, c) => s + pontosCarta(c.rank), 0);
+    const bV = 100, totCanV = canV + bV, diffC = totCanV - canP;
+    if (diffC > 0) { mskP -= diffC; if (mskP < 0) mskP = 0; } else if (diffC < 0) { mskV -= Math.abs(diffC); if (mskV < 0) mskV = 0; }
+    mskP -= maoP; if (mskP < 0) mskP = 0;
+    vFinal = mskV > mskP ? vencedor : perdedor;
+    const dF = Math.abs(mskV - mskP);
+    html += `<h3>1. Canastras</h3><table><tr><td>Canastras ${nomes[vencedor]}</td><td>${canV}</td></tr><tr><td>Bônus</td><td class="pos">+${bV}</td></tr><tr><td>Total</td><td>${totCanV}</td></tr><tr><td>Canastras ${nomes[perdedor]}</td><td>${canP}</td></tr></table>`;
+    html += `<h3>2. Pagamento</h3><table><tr><td>Mão ${nomes[perdedor]}</td><td class="neg">-${maoP}</td></tr><tr><td>Mesa ${nomes[perdedor]}</td><td>${mskP}</td></tr><tr><td>Mesa ${nomes[vencedor]}</td><td>${mskV}</td></tr></table>`;
+    html += `<h2 style="margin-top:14px;color:#ffd54f;">🏆 Vencedor: ${nomes[vFinal]} (Dif: ${dF})</h2>`;
+    if (vFinal !== vencedor) { serieVitorias[vFinal]++; serieVitorias[vencedor]--; }
+  }
   if (modoMD) {
-    html += `<p style="text-align:center;color:#8fd6a3;font-size:14px;margin:8px 0;">Série (MD${cfg.serie}): <b style="color:#ffd54f;">${serieVitorias[0]} - ${serieVitorias[1]}</b></p>`;
+    html = `<p style="text-align:center;color:#8fd6a3;font-size:14px;margin:8px 0;">Série (MD${cfg.serie}): <b style="color:#ffd54f;">${serieVitorias[0]} - ${serieVitorias[1]}</b></p>` + html;
     if (serieCompleta) {
       const campeao = serieVitorias[0] >= alvo ? nomes[0] : nomes[1];
-      html += `<p style="text-align:center;color:#ffd54f;font-weight:800;font-size:16px;margin:8px 0;">🏆 CAMPEÃO DA SÉRIE: ${campeao}</p>`;
+      html = `<p style="text-align:center;color:#ffd54f;font-weight:800;font-size:16px;margin:8px 0;">🏆 CAMPEÃO DA SÉRIE: ${campeao}</p>` + html;
     }
   }
-  html += `<h2 style="color:#ffd54f;text-align:center;">${nomes[vencedor]} venceu!</h2>`;
-  for (let i = 0; i < 2; i++) {
-    const reais = G.jogadores[i].melds.filter(m => !m.bluff).length;
-    const blefes = G.jogadores[i].melds.filter(m => m.bluff).length;
-    html += `<h3>${nomes[i]}</h3><table><tr><td>Jogos</td><td class="pos">${reais}${blefes > 0 ? ` <span style="color:#ff9800">(+${blefes}🎭)</span>` : ''}</td></tr><tr><td>Cartas na mão</td><td class="neg">${G.jogadores[i].mao.length}</td></tr></table>`;
-  }
-  if (porMonte) html += `<p style="color:#ffd54f;text-align:center;margin-top:10px;">Fim por monte vazio</p>`;
   conteudo.innerHTML = html;
   modal.classList.add('aberto');
-  speak(`${nomes[vencedor]} venceu!`, vencedor);
+  speak(`${nomes[vFinal] || nomes[vencedor]} venceu!`, vFinal ?? vencedor);
   btn.onclick = () => {
     modal.classList.remove('aberto');
     if (modoMD && serieCompleta) { serieVitorias = [0, 0]; salvarSerie(); showToast('Nova série iniciada!'); }
@@ -681,12 +824,7 @@ async function teslaCpuTurn() {
       let querLixo = false;
       if (G.lixo.length > 0) {
         const topo = G.lixo[G.lixo.length - 1];
-        const sameRank = j.mao.filter(c => c.rank === topo.rank && c.suit !== topo.suit);
-        if (sameRank.length >= 2 && new Set([topo.suit, ...sameRank.map(c => c.suit)]).size >= 3) querLixo = true;
-        if (!querLixo) {
-          const sameSuit = j.mao.filter(c => c.suit === topo.suit);
-          for (const c of sameSuit) { const d = Math.abs(posDoRank(c.rank) - posDoRank(topo.rank)); if (d === 1 || d === 2) { querLixo = true; break; } }
-        }
+        if (j.mao.filter(c => c.rank === topo.rank).length >= 2) querLixo = true;
       }
       if (querLixo) {
         await teslaAcao('pegar_lixo', `Pegar ${G.lixo[G.lixo.length-1].rank}${G.lixo[G.lixo.length-1].suit} do lixo`, idx, gen);
@@ -725,6 +863,15 @@ async function teslaCpuTurn() {
       G.selecionadas.clear(); render();
       await teslaDelay(250); scheduleCpuTurn(150); isProcessingAI = false; return;
     }
+    const enc = encontrarEncaixe(idx);
+    if (enc) {
+      teslaToast(`🤖 ${j.nome}: Encaixando ${enc.card.rank}${enc.card.suit}`);
+      if (cfg.teslaPointer) { const el = document.querySelector(`#mao-jogador > .card[data-id="${enc.card.id}"]`); if (el) { await movePointerTo(el, gen); await pointerClick(el, gen); } }
+      await speak('Encaixando', idx);
+      if (gen !== teslaGeneration || !G || G.finalizado) { isProcessingAI = false; return; }
+      encaixar(idx, enc.meld.id, enc.card.id); render();
+      await teslaDelay(200); scheduleCpuTurn(150); isProcessingAI = false; return;
+    }
     if (gen !== teslaGeneration || !G || G.finalizado) { isProcessingAI = false; return; }
     if (j.mao.length === 0) {
       await teslaAcao('passar', 'Mão vazia sem condições. Passar.', idx, gen);
@@ -732,11 +879,10 @@ async function teslaCpuTurn() {
       passar(); isProcessingAI = false; return;
     }
     const pior = escolherPior(j);
-    const vaiBater = (j.mao.length === 1 && j.melds.filter(m => !m.bluff).length >= 3);
-    teslaToast(`🤖 ${j.nome}: ${vaiBater ? 'Descartando última e BATER!' : 'Descartando ' + pior.rank + pior.suit}`);
+    teslaToast(`🤖 ${j.nome}: Descartando ${pior.rank}${pior.suit}`);
     if (cfg.teslaPointer) { const el = document.querySelector(`#mao-jogador > .card[data-id="${pior.id}"]`); if (el) { await movePointerTo(el, gen); if (gen !== teslaGeneration) { isProcessingAI = false; return; } await pointerClick(el, gen); } }
     G.selecionadas.clear(); G.selecionadas.add(pior.id); render();
-    await speak(vaiBater ? 'Descartando e batendo!' : `Descartando ${pior.rank}${pior.suit}`, idx);
+    await speak(`Descartando ${pior.rank}${pior.suit}`, idx);
     if (gen !== teslaGeneration || !G || G.finalizado) { isProcessingAI = false; return; }
     if (cfg.teslaPointer) { const b = document.querySelector('#acoes button[data-action="descartar"]'); if (b) { await movePointerTo(b, gen); if (gen !== teslaGeneration) { isProcessingAI = false; return; } await pointerClick(b, gen); } }
     await teslaDelay(200);
@@ -749,24 +895,51 @@ async function teslaCpuTurn() {
 function encontrarJogo(idx) {
   const mao = G.jogadores[idx].mao;
   const grupos = {};
-  for (const c of mao) (grupos[c.rank] = grupos[c.rank] || []).push(c);
+  for (const c of mao) { if (c.rank === '2') continue; (grupos[c.rank] = grupos[c.rank] || []).push(c); }
   for (const r in grupos) {
     if (grupos[r].length >= 3) {
-      const bySuit = {};
-      for (const c of grupos[r]) { if (!bySuit[c.suit]) bySuit[c.suit] = c; }
-      const suits = Object.keys(bySuit);
-      if (suits.length >= 3) return { cards: [bySuit[suits[0]], bySuit[suits[1]], bySuit[suits[2]]], tipo: 'trinca' };
+      const validas = [], su = {};
+      for (const c of grupos[r]) { su[c.suit] = (su[c.suit] || 0) + 1; if (su[c.suit] <= 2) validas.push(c); }
+      if (validas.length >= 3) {
+        const sel = validas.slice(0, Math.min(4, validas.length));
+        const resto = mao.filter(c => !sel.includes(c));
+        if (!bloqueioMaoVazia(resto)) return { cards: sel, tipo: 'trinca' };
+      }
     }
   }
   for (const naipe of SUITS) {
-    const cards = mao.filter(c => c.suit === naipe);
+    const cards = mao.filter(c => c.suit === naipe && c.rank !== '2');
     if (cards.length < 3) continue;
     cards.sort((a, b) => posDoRank(a.rank) - posDoRank(b.rank));
-    for (let i = 0; i + 2 < cards.length; i++) {
-      const r1 = posDoRank(cards[i].rank);
-      const r2 = posDoRank(cards[i+1].rank);
-      const r3 = posDoRank(cards[i+2].rank);
-      if (r2 === r1 + 1 && r3 === r2 + 1) return { cards: [cards[i], cards[i+1], cards[i+2]], tipo: 'sequencia' };
+    let run = [cards[0]];
+    for (let i = 1; i < cards.length; i++) {
+      const prev = posDoRank(cards[i-1].rank), cur = posDoRank(cards[i].rank);
+      if (cur === prev + 1) run.push(cards[i]);
+      else {
+        if (run.length >= 3) {
+          const resto = mao.filter(c => !run.includes(c));
+          if (!bloqueioMaoVazia(resto)) return { cards: [...run], tipo: 'sequencia' };
+        }
+        run = [cards[i]];
+      }
+    }
+    if (run.length >= 3) {
+      const resto = mao.filter(c => !run.includes(c));
+      if (!bloqueioMaoVazia(resto)) return { cards: [...run], tipo: 'sequencia' };
+    }
+  }
+  return null;
+}
+
+function encontrarEncaixe(idx) {
+  const j = G.jogadores[idx];
+  for (const card of j.mao) {
+    if (card.rank === '2' && cfg.meleBloqueado) continue;
+    for (const m of j.melds) {
+      if (m.virada || m.bluff) continue;
+      const clone = { ...m, cards: m.cards.map(c => ({ ...c })) };
+      const res = tentarEncaixar(clone, card);
+      if (res.ok) { const novaMao = j.mao.filter(c => c.id !== card.id); if (bloqueioMaoVazia(novaMao)) continue; return { meld: m, card }; }
     }
   }
   return null;
@@ -774,8 +947,10 @@ function encontrarJogo(idx) {
 
 function escolherPior(j) {
   if (j.mao.length === 0) return null;
-  let pior = j.mao[0], ps = Infinity;
-  for (const c of j.mao) {
+  const cand = j.mao.filter(c => c.rank !== '2');
+  const pool = cand.length ? cand : j.mao;
+  let pior = pool[0], ps = Infinity;
+  for (const c of pool) {
     let s = 0;
     s += j.mao.filter(x => x.rank === c.rank).length * 3;
     s += j.mao.filter(x => x.suit === c.suit).length * 1.5;
@@ -788,6 +963,7 @@ function escolherPior(j) {
 function cardEl(c, o = {}) {
   const d = document.createElement('div'); d.className = 'card';
   if (RED_SUITS.has(c.suit)) d.classList.add('red');
+  if (o.wild) d.classList.add('wild');
   if (o.sel) d.classList.add('sel');
   if (o.static) d.classList.add('static');
   const r = document.createElement('span'); r.className = 'r'; r.textContent = c.rank;
@@ -800,7 +976,7 @@ function renderMao() {
   const el = document.getElementById('mao-jogador'); el.innerHTML = '';
   const j = G.jogadores[0];
   j.mao.forEach(c => {
-    const d = cardEl(c, { sel: G.selecionadas.has(c.id) });
+    const d = cardEl(c, { sel: G.selecionadas.has(c.id), wild: c.rank === '2' });
     d.dataset.id = c.id;
     if (cfg.modoJogo === 'PvAI') configurarDrag(d, c.id);
     el.appendChild(d);
@@ -815,20 +991,27 @@ function renderBarra() {
     const b = document.createElement('div'); b.className = 'card'; b.style.background = 'linear-gradient(135deg,#1e3a8a,#3b82f6)'; b.style.borderColor = '#1e40af';
     pm.appendChild(b); const c = document.createElement('div'); c.className = 'contagem'; c.textContent = G.monte.length; pm.appendChild(c);
   }
+  [0, 1].forEach(i => {
+    const p = document.getElementById('p-m' + i); p.innerHTML = ''; const tem = G.mortos[i].length > 0; p.classList.toggle('vazia', !tem);
+    if (tem) {
+      const b = document.createElement('div'); b.className = 'card'; b.style.background = 'linear-gradient(135deg,#4a148c,#8e24aa)'; b.style.borderColor = '#6a1b9a';
+      p.appendChild(b); const c = document.createElement('div'); c.className = 'contagem'; c.textContent = G.mortos[i].length; p.appendChild(c);
+    }
+  });
 }
 
 function renderLixo() {
   const pl = document.getElementById('lixo-cartas'); pl.innerHTML = ''; document.getElementById('lixo-contador').textContent = G.lixo.length;
   if (cfg.lixoCols > 0) pl.classList.add('grid'); else pl.classList.remove('grid');
   if (G.lixo.length === 0) { const v = document.createElement('div'); v.id = 'lixo-vazio'; v.textContent = 'vazio'; pl.appendChild(v); }
-  else G.lixo.forEach(c => pl.appendChild(cardEl(c, { static: true })));
+  else G.lixo.forEach(c => pl.appendChild(cardEl(c, { wild: c.rank === '2', static: true })));
 }
 
 function renderMeldsCompleto(container, interativo) {
   [1, 0].forEach(idx => {
     const j = G.jogadores[idx]; if (j.melds.length === 0) return;
     const linha = document.createElement('div'); linha.className = 'meld-linha' + (idx === 1 ? ' oponente' : '');
-    const tit = document.createElement('div'); tit.className = 'meld-titulo'; tit.textContent = j.nome + ` (${j.melds.filter(m => !m.bluff).length}/3)`; linha.appendChild(tit);
+    const tit = document.createElement('div'); tit.className = 'meld-titulo'; tit.textContent = j.nome; linha.appendChild(tit);
     const scroll = document.createElement('div'); scroll.className = 'meld-scroll';
     j.melds.forEach(m => {
       const d = document.createElement('div');
@@ -838,9 +1021,10 @@ function renderMeldsCompleto(container, interativo) {
       if (m.virada && isOposta) cls += ' oculta';
       else if (m.bluff) cls += ' bluff';
       d.className = cls; d.dataset.meldId = m.id;
-      m.cards.forEach(c => d.appendChild(cardEl(c.card, { static: true })));
-      const badge = document.createElement('div'); badge.className = 'meld-pts';
-      badge.textContent = m.bluff ? '🎭' : '3'; d.appendChild(badge);
+      m.cards.forEach(c => d.appendChild(cardEl(c.card, { wild: c.wild, static: true })));
+      const n = m.cards.length, pts = calcularPontuacaoJogada(m), isLong = n >= 7 || (n === 14 && m.startRank === 1);
+      const badge = document.createElement('div'); badge.className = 'meld-pts' + (isLong && pts > 0 ? ' pos' : '');
+      badge.textContent = m.bluff ? '🎭' : (isLong && pts > 0 ? pts : n); d.appendChild(badge);
       if (interativo) d.addEventListener('click', () => onMeldClick(m.id, idx)); else d.style.cursor = 'default';
       scroll.appendChild(d);
     });
@@ -860,11 +1044,9 @@ function renderStatus() {
   document.getElementById('nome-jogador').textContent = G.jogadores[0].nome;
   document.getElementById('cartas-jogador').textContent = G.jogadores[0].mao.length + ' cartas';
   document.getElementById('cartas-cpu').textContent = G.jogadores[1].mao.length;
-  const reais0 = G.jogadores[0].melds.filter(m => !m.bluff).length;
   const bv = document.getElementById('badge-vitoria');
-  bv.textContent = `${reais0}/3 JOGOS`;
-  bv.style.display = '';
-  bv.style.background = reais0 >= 3 ? '#2e7d32' : '#1565c0';
+  bv.textContent = 'CANASTRA';
+  bv.style.display = G.jogadores[0].melds.some(m => !m.bluff && ehCanastra(m)) ? '' : 'none';
   const bs = document.getElementById('badge-serie');
   if (cfg.serie > 0) bs.textContent = `${serieVitorias[0]} – ${serieVitorias[1]} (MD${cfg.serie})`;
   else bs.textContent = `(${serieVitorias[0]} - ${serieVitorias[1]})`;
@@ -891,7 +1073,8 @@ function renderAcoes() {
     area.appendChild(b);
   };
   if (G.fase === 'draw') {
-    btn('Comprar', () => { comprarDoMonte(); render(); }, G.monte.length > 0, '', 'comprar');
+    const podeComprar = G.monte.length > 0 || G.mortos.some((m, i) => G.mortosDono[i] === null && m.length > 0);
+    btn('Comprar', () => { comprarDoMonte(); render(); }, podeComprar, '', 'comprar');
     btn('Pegar Lixo', () => { pegarLixo(); render(); }, G.lixo.length > 0, '', 'pegar_lixo');
     return;
   }
@@ -900,8 +1083,9 @@ function renderAcoes() {
   const podeDev = idx === 0 && !fd && G.lixoOriginal.length > 0 && sel.length === G.lixoOriginal.length && sel.every(id => G.lixoOriginal.includes(id));
   if (podeDev) btn('Devolver Lixo', () => devolverLixo(), true, '', 'devolver_lixo');
   else {
-    btn('Baixar', () => tentarBaixar(false), sel.length === 3, '', 'baixar');
-    btn('Baixar Virada', () => tentarBaixar(true), sel.length === 3, '', 'baixar_virada');
+    const podeBaixar = sel.length >= 3;
+    btn('Baixar', () => tentarBaixar(false), podeBaixar, '', 'baixar');
+    btn('Baixar Virada', () => tentarBaixar(true), podeBaixar, '', 'baixar_virada');
     btn('Descartar', () => { if (sel.length !== 1) return; if (descartar(idx, sel[0])) { G.selecionadas.clear(); render(); } }, sel.length === 1, '', 'descartar');
   }
   if (podeBater(idx)) btn('BATER!', () => { bater(idx); }, true, 'bater', 'bater');
@@ -917,7 +1101,9 @@ function onMeldClick(meldId, ownerIdx) {
   if (ownerIdx !== 0) { addLog('Só nas suas jogadas.'); return; }
   if (meld.virada) { acaoViradaMeldId = meldId; document.getElementById('modal-acao-virada').classList.add('aberto'); return; }
   if (meld.bluff) { addLog('Blefe não aceita encaixe.'); return; }
-  addLog('Batidinha: sem encaixe.');
+  const sel = [...G.selecionadas];
+  if (sel.length !== 1) { addLog('Selecione 1 carta.'); return; }
+  if (encaixar(0, meldId, sel[0])) { G.selecionadas.clear(); render(); }
 }
 
 window.acaoVirada = function(tipo) {
@@ -934,11 +1120,11 @@ window.acaoVirada = function(tipo) {
 function tentarBaixar(virada) {
   const j = G.jogadores[0];
   const cards = [...G.selecionadas].map(id => j.mao.find(c => c.id === id)).filter(Boolean);
-  if (cards.length !== 3) { addLog('Selecione exatamente 3 cartas.'); return; }
+  if (cards.length < 3) { addLog('Mínimo 3 cartas.'); return; }
   if (virada) { if (baixarBlefe(0, cards)) { G.selecionadas.clear(); render(); } return; }
-  const res = verificarJogada(cards);
-  if (!res.valida) { addLog(`Inválido: ${res.motivo}`); return; }
-  if (baixarJogada(0, cards, res.tipo)) { G.selecionadas.clear(); render(); }
+  const tr = verificarTrinca(cards); if (tr.valida) { if (baixarJogada(0, cards, 'trinca', false)) { G.selecionadas.clear(); render(); return; } }
+  const sq = verificarSequencia(cards); if (sq.valida) { if (baixarJogada(0, cards, 'sequencia', false)) { G.selecionadas.clear(); render(); return; } }
+  addLog('Jogada inválida.'); render();
 }
 
 function configurarDrag(el, cardId) {
@@ -998,7 +1184,7 @@ window.continuarJogoSalvo = function() {
   } else novoJogo();
 };
 
-function abrirModalLixo() { const el = document.getElementById('modal-lixo-conteudo'); el.innerHTML = ''; if (G.lixo.length === 0) el.innerHTML = '<p>Vazio</p>'; else G.lixo.forEach(c => el.appendChild(cardEl(c, { static: true }))); document.getElementById('modal-lixo').classList.add('aberto'); }
+function abrirModalLixo() { const el = document.getElementById('modal-lixo-conteudo'); el.innerHTML = ''; if (G.lixo.length === 0) el.innerHTML = '<p>Vazio</p>'; else G.lixo.forEach(c => el.appendChild(cardEl(c, { wild: c.rank === '2', static: true }))); document.getElementById('modal-lixo').classList.add('aberto'); }
 function abrirHistorico() { document.getElementById('hist-conteudo').innerHTML = G.logs.map(m => `<div>${m}</div>`).join(''); document.getElementById('modal-hist').classList.add('aberto'); }
 function abrirModalMesa() {
   const el = document.getElementById('modal-mesa-conteudo'); el.innerHTML = '';
@@ -1010,39 +1196,48 @@ window.abrirInspecao = function(tipo) {
   if (!cfg.inspecao) return;
   let cards = [], tit = '';
   if (tipo === 'monte') { cards = G.monte; tit = `Monte (${cards.length})`; }
+  else if (tipo === 'm0') { cards = G.mortos[0]; tit = `1º Morto`; }
+  else if (tipo === 'm1') { cards = G.mortos[1]; tit = `2º Morto`; }
   else if (tipo === 'cpu') { cards = G.jogadores[1].mao; tit = `CPU`; }
   document.getElementById('inspecao-titulo').textContent = tit;
   const el = document.getElementById('inspecao-conteudo'); el.innerHTML = '';
-  if (!cards.length) el.innerHTML = '<p>Vazio</p>'; else { let a = [...cards]; if (tipo !== 'cpu') a.reverse(); a.forEach(c => el.appendChild(cardEl(c, { static: true }))); }
+  if (!cards.length) el.innerHTML = '<p>Vazio</p>'; else { let a = [...cards]; if (tipo !== 'cpu') a.reverse(); a.forEach(c => el.appendChild(cardEl(c, { wild: c.rank === '2', static: true }))); }
   document.getElementById('modal-inspecao').classList.add('aberto');
 };
 
 window.abrirRegrasJogo = function() {
   const el = document.getElementById('regras-jogo-conteudo');
   el.innerHTML = `
-    <h3>Objetivo</h3>
-    <p>Ser o primeiro a <b>baixar 3 jogos de exatamente 3 cartas cada</b> e ficar com a mão vazia.</p>
     <h3>Distribuição</h3>
-    <ul><li>2 baralhos (104 cartas)</li><li>9 cartas por jogador</li><li>Sem mortos, sem canastra, sem pontuação</li></ul>
+    <ul><li>2 baralhos (104 cartas), 11 cartas por jogador</li><li>2 mortos de 11 cartas cada</li></ul>
+    <h3>Objetivo</h3>
+    <p><b>Bater:</b> mão vazia + pelo menos 1 canastra + os 2 mortos pegos.</p>
     <h3>Fluxo do Turno</h3>
     <ol>
-      <li><b>Comprar:</b> pegue 1 do monte OU só o topo do lixo.</li>
-      <li><b>Baixar (opcional):</b> baixe um jogo de 3 cartas.</li>
+      <li><b>Comprar:</b> pegue 1 do monte OU todo o lixo.</li>
+      <li><b>Baixar / Encaixar:</b> opcional.</li>
       <li><b>Descartar:</b> obrigatório 1 carta no lixo.</li>
     </ol>
-    <h3>Jogos Válidos</h3>
+    <h3>Melê (Curinga)</h3>
+    <p>Todas as cartas <b>2</b> são curingas. Máximo 2 por jogada.</p>
+    <h3>Jogadas Válidas</h3>
     <ul>
-      <li><b>TRINCA:</b> 3 cartas do mesmo valor, todas de naipes diferentes. Ex: 7♠ 7♥ 7♦</li>
-      <li><b>SEQUÊNCIA:</b> 3 cartas do mesmo naipe em ordem consecutiva. Ex: 5♣ 6♣ 7♣</li>
+      <li><b>Trinca:</b> 3+ cartas do mesmo valor (máx. 2 do mesmo naipe)</li>
+      <li><b>Sequência:</b> 3+ cartas do mesmo naipe em ordem</li>
+      <li><b>Canastra:</b> 7+ cartas (limpa = 200 pts, suja = 100 pts)</li>
     </ul>
-    <p><b>Importante:</b> a trinca exige 3 naipes diferentes (não pode ter 2 do mesmo naipe).</p>
     <h3>Jogada Virada (Blefe)</h3>
-    <p>Baixe 3 cartas fechadas. Se válidas = melê real oculto (conta). Se inválidas = blefe (cartas voltam à mão ao revelar).</p>
-    <h3>Encaixe</h3>
-    <p><b>Não existe encaixe</b> no Batidinha. Depois de baixado, um jogo não recebe mais cartas.</p>
-    <h3>Como Vencer</h3>
-    <p>Esvazie sua mão com <b>3 jogos reais baixados</b>. Ao descartar a última carta e ter 3 jogos reais na mesa, você <b>BATE</b> automaticamente.</p>
-    <p>Se o monte esvaziar: quem tiver menos cartas na mão vence. Empate em cartas? Quem tiver mais jogos reais vence.</p>
+    <p>Baixe 3+ cartas fechadas. Se válidas = melê real oculto. Se inválidas = blefe (cartas voltam à mão ao revelar).</p>
+    <h3>Mortos</h3>
+    <p>Quando sua mão esvaziar, pega o 1º morto (11 cartas). Depois o 2º. Depois disso, precisa bater na próxima vez que esvaziar.</p>
+    <h3>Pontuação</h3>
+    <ul>
+      <li>Canastra limpa: <b>+200</b></li>
+      <li>Canastra suja: <b>+100</b></li>
+      <li>Trinca de melês (7+ 2s): <b>+200</b></li>
+      <li>Sequência A-K (14 cartas): limpa <b>+500</b>, suja <b>+100</b></li>
+    </ul>
+    <p><b>Bônus por bater:</b> +100. Cartas na mão do perdedor descontam da pontuação.</p>
   `;
   document.getElementById('modal-regras-jogo').classList.add('aberto');
 };
@@ -1052,7 +1247,7 @@ function abrirSecaoCfg(secao) {
   document.querySelectorAll('.cfg-secao').forEach(e => e.style.display = 'none');
   if (secao === 'admin') { document.getElementById('modal-senha').classList.add('aberto'); document.getElementById('senha-input').value = ''; return; }
   document.getElementById('cfg-sec-' + secao).style.display = 'block';
-  document.getElementById('cfg-titulo').textContent = { jogadores: 'Jogadores', log: 'Log', interface: 'Interface', tesla: '🤖 TESLA', admin: 'Admin' }[secao] || 'Menu';
+  document.getElementById('cfg-titulo').textContent = { jogadores: 'Jogadores', log: 'Log', interface: 'Interface', regras: 'Regras', tesla: '🤖 TESLA', admin: 'Admin' }[secao] || 'Menu';
   document.getElementById('cfg-voltar').style.display = 'inline-block';
 }
 function voltarMenuCfg() { document.querySelectorAll('.cfg-secao').forEach(e => e.style.display = 'none'); document.getElementById('cfg-menu-principal').style.display = 'block'; document.getElementById('cfg-titulo').textContent = 'Menu'; document.getElementById('cfg-voltar').style.display = 'none'; }
@@ -1073,6 +1268,9 @@ function abrirConfig() {
   document.getElementById('cfg-hand-cols').value = cfg.handCols;
   document.getElementById('cfg-lixo-quebra').checked = cfg.lixoCols > 0;
   document.getElementById('cfg-lixo-cols').value = cfg.lixoCols > 0 ? cfg.lixoCols : 6;
+  document.getElementById('cfg-meles').checked = cfg.meleBloqueado;
+  document.getElementById('cfg-dois').checked = cfg.doisMelesTrinca;
+  document.getElementById('cfg-nivel').value = String(cfg.nivelCPU);
   document.getElementById('cfg-teslaPointer').checked = cfg.teslaPointer;
   document.getElementById('cfg-teslaToasts').checked = cfg.teslaToasts;
   document.getElementById('cfg-teslaVoice').checked = cfg.teslaVoice;
@@ -1111,6 +1309,9 @@ function salvarConfig() {
   cfg.lixoWidth = parseInt(document.getElementById('cfg-lixo-w').value, 10) || 32;
   cfg.handCols = parseInt(document.getElementById('cfg-hand-cols').value, 10) || 8;
   cfg.lixoCols = document.getElementById('cfg-lixo-quebra').checked ? (parseInt(document.getElementById('cfg-lixo-cols').value, 10) || 6) : 0;
+  cfg.meleBloqueado = document.getElementById('cfg-meles').checked;
+  cfg.doisMelesTrinca = document.getElementById('cfg-dois').checked;
+  cfg.nivelCPU = parseInt(document.getElementById('cfg-nivel').value, 10);
   cfg.teslaPointer = document.getElementById('cfg-teslaPointer').checked;
   cfg.teslaToasts = document.getElementById('cfg-teslaToasts').checked;
   cfg.teslaVoice = document.getElementById('cfg-teslaVoice').checked;
@@ -1211,7 +1412,7 @@ function init() {
   bindSlider('cfg-teslaPointerSpeed', 'cfg-teslaPointerSpeedNum', 'teslaPointerSpeed');
   bindSlider('cfg-teslaVoiceSpeed', 'cfg-teslaVoiceSpeedNum', 'teslaVoiceSpeed');
 
-  const temSave = !!localStorage.getItem('batidinha_save_v74solo');
+  const temSave = !!localStorage.getItem('biriba_save_v74solo');
   document.getElementById('btn-jogo-continuar').style.display = temSave ? 'block' : 'none';
 
   if (temSave) {
